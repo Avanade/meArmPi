@@ -88,7 +88,6 @@ class Servo(object):
         pulse //= pulse_length
         return int(pulse)
 
-
 class PCA9685(object):
     """PCA9685 PWM LED/servo controller."""
 
@@ -99,6 +98,7 @@ class PCA9685(object):
             import Adafruit_GPIO.I2C as I2C
             i2c = I2C
         self.servos = {}
+        self.frequency = None
         self._address = address
         self._device = i2c.get_i2c_device(address, **kwargs)
         self.set_all_pwm(0, 0)
@@ -110,9 +110,54 @@ class PCA9685(object):
         self._device.write8(MODE1, mode1)
         time.sleep(0.005)  # wait for oscillator
 
-    def add_servo(self, channel, frequency=200, min_pulse=0.7, max_pulse=2.1, neutral_pulse=1.4, pulse_resolution=4096):
-        """Adds a servo definition for a given channel. Use the pulse_resolution parameter to tweak away rounding errors"""
-        self.servos[channel] = Servo(frequency, min_pulse, max_pulse, neutral_pulse, resolution=4096)
+    def add_servo(self, channel, frequency=200, min_pulse=0.7, max_pulse=2.1, neutral_pulse=1.4,
+                  pulse_resolution=4096):
+        """Adds a servo definition for a given channel.
+           Attributes:
+                channel:            the channel on which the servo is operating.
+                frequency:          the frequency for the servo.
+                min_pulse:          the minimum signal pulse length
+                max_pulse:          the maximum signal pulse length
+                neutral_pulse:      the lenght of a pulse for the neutral position
+                pulse_resolution:   the pulse resolution. This will generally be 4096, but can be
+                                    adjusted for each servo to achieve the desired width. Use
+                                    a scope on the controller to verify that the actual pulse
+                                    length corresponds to the requested pulse length and tweak this
+                                    parameter until it does.
+        """
+        self.servos[channel] = Servo(frequency, min_pulse, max_pulse, neutral_pulse,
+                                     pulse_resolution)
+        if self.frequency is None:
+            self.frequency = frequency
+            self.set_pwm_freq(frequency)
+        else:
+            if self.frequency != frequency:
+                raise Exception('Incompatible frequency %d. All servos must operate on the same \
+                    frequency. Presvioulsy registered frequency: %d' % (frequency, self.frequency))
+
+
+    def set_servo_pulse(self, channel, pulse):
+        """Sets the servo on channel to a certain pulse width."""
+        servo = self.servos[channel]
+        if servo is None:
+            raise Exception('There is no servo registered on channel %d' % channel)
+        else:
+            ticks = servo.calculate_servo_ticks(pulse)
+            logger.info('Channel %d: %f pulse -> %d ticks', channel, pulse, ticks)
+            #self.set_pwm_freq(servo.frequency)
+            self.set_pwm(channel, 0, ticks)
+
+    def set_servo_angle(self, channel, angle):
+        """Sets the servo on channel to a certain angle."""
+        ticks = 0
+        anglepulse = 0
+        servo = self.servos[channel]
+        if servo is None:
+            raise Exception('There is no servo registered on channel %d' % channel)
+        else:
+            logger.info('Channel %d: %f angle -> %d ticks', channel, anglepulse, ticks)
+            #self.set_pwm_freq(servo.frequency)
+
 
     def set_pwm_freq(self, freq_hz):
         """Set the PWM frequency to the provided value in hertz."""

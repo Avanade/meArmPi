@@ -19,6 +19,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 # pylint: disable=C0103
+"""
+    This library drive GPIO interaction with the Adafruit Servo HAT and provides
+    some high level functions to interact with servos on the HAT
+"""
 from __future__ import division
 import logging
 import time
@@ -66,27 +70,53 @@ class Servo(object):
     """Represents a servo on the controller."""
 
     def __init__(self, frequency=200, min_pulse=0.7, max_pulse=2.1, neutral_pulse=1.4,
+                 min_angle=-90, max_angle=90, neutral_angle=0,
                  resolution=4096):
         """Initialize Servo"""
         self.frequency = frequency
         self.min_pulse = min_pulse
         self.max_pulse = max_pulse
         self.neutral_pulse = neutral_pulse
+        self.min_angle = min_angle
+        self.max_angle = max_angle
+        self.neutral_angle = neutral_angle
         self.pulse_resolution = resolution
 
         #caluclate boundary ticks for servo
-        self.servo_min = self.calculate_servo_ticks(self.min_pulse)
-        self.servo_max = self.calculate_servo_ticks(self.max_pulse)
-        self.servo_neutral = self.calculate_servo_ticks(self.neutral_pulse)
+        self.servo_min = self.calculate_servo_ticks_from_pulse(self.min_pulse)
+        self.servo_max = self.calculate_servo_ticks_from_pulse(self.max_pulse)
+        self.servo_neutral = self.calculate_servo_ticks_from_pulse(self.neutral_pulse)
 
-    def calculate_servo_ticks(self, pulse):
+    def calculate_servo_ticks_from_pulse(self, pulse):
         """Calculate the number of on ticks to achieve a certain pulse."""
+
+        if pulse < self.min_pulse or pulse > self.max_pulse:
+            raise Exception('Pulse %f out of range. Must be between %f and %f' %
+                            (pulse, self.min_pulse, self.max_pulse))
+
         pulse_length = 1000000                  # 1,000,000 us per second
         pulse_length /= self.frequency          # signal frequency
         pulse_length /= self.pulse_resolution   # 12 bits of resolution
         pulse *= 1000
         pulse //= pulse_length
         return int(pulse)
+
+    def calculate_servo_ticks_from_angle(self, angle):
+        """Calculate the number of on ticks to achieve a certain servo angle."""
+
+        if angle < self.min_angle or angle > self.max_angle:
+            raise Exception('Angle %d out of range. Must be between %d and %d' %
+                            (angle, self.min_angle, self.max_angle))
+
+        pulse = self.neutral_pulse
+        if angle > self.neutral_angle:
+            pulse += ((angle - self.neutral_angle) * (self.max_pulse - self.neutral_pulse)) / \
+                (self.max_angle - self.neutral_angle)
+        elif angle < self.neutral_angle:
+            pulse -= ((angle + self.neutral_angle) * (self.neutral_pulse - self.min_pulse)) / \
+                (self.min_angle + self.neutral_angle)
+        logger.info('Angle %d -> pulse %f', angle, pulse)
+        return self.calculate_servo_ticks_from_pulse(pulse)
 
 class PCA9685(object):
     """PCA9685 PWM LED/servo controller."""
@@ -111,14 +141,18 @@ class PCA9685(object):
         time.sleep(0.005)  # wait for oscillator
 
     def add_servo(self, channel, frequency=200, min_pulse=0.7, max_pulse=2.1, neutral_pulse=1.4,
+                  min_angle=-90, max_angle=90, neutral_angle=0,
                   pulse_resolution=4096):
         """Adds a servo definition for a given channel.
            Attributes:
                 channel:            the channel on which the servo is operating.
                 frequency:          the frequency for the servo.
-                min_pulse:          the minimum signal pulse length
-                max_pulse:          the maximum signal pulse length
+                min_pulse:          the minimum signal pulse length.
+                max_pulse:          the maximum signal pulse length.
                 neutral_pulse:      the lenght of a pulse for the neutral position
+                min_angle:          the minimum servo angle achieved via min_pulse.
+                max_angle:          the maximum servo angle achieved via max_pulse.
+                neutral_angle:      the neutral angle achieved via neutral_pulse.
                 pulse_resolution:   the pulse resolution. This will generally be 4096, but can be
                                     adjusted for each servo to achieve the desired width. Use
                                     a scope on the controller to verify that the actual pulse
@@ -126,6 +160,7 @@ class PCA9685(object):
                                     parameter until it does.
         """
         self.servos[channel] = Servo(frequency, min_pulse, max_pulse, neutral_pulse,
+                                     min_angle, max_angle, neutral_angle,
                                      pulse_resolution)
         if self.frequency is None:
             self.frequency = frequency
@@ -142,21 +177,19 @@ class PCA9685(object):
         if servo is None:
             raise Exception('There is no servo registered on channel %d' % channel)
         else:
-            ticks = servo.calculate_servo_ticks(pulse)
+            ticks = servo.calculate_servo_ticks_from_pulse(pulse)
             logger.info('Channel %d: %f pulse -> %d ticks', channel, pulse, ticks)
-            #self.set_pwm_freq(servo.frequency)
             self.set_pwm(channel, 0, ticks)
 
     def set_servo_angle(self, channel, angle):
         """Sets the servo on channel to a certain angle."""
-        ticks = 0
-        anglepulse = 0
         servo = self.servos[channel]
         if servo is None:
             raise Exception('There is no servo registered on channel %d' % channel)
         else:
-            logger.info('Channel %d: %f angle -> %d ticks', channel, anglepulse, ticks)
-            #self.set_pwm_freq(servo.frequency)
+            ticks = servo.calculate_servo_ticks_from_angle(angle)
+            logger.info('Channel %d: %f angle -> %d ticks', channel, angle, ticks)
+            self.set_pwm(channel, 0, ticks)
 
 
     def set_pwm_freq(self, freq_hz):

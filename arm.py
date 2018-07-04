@@ -14,79 +14,97 @@ pwm = servo.PCA9685(address=0x40)
 # Alternatively specify a different address and/or bus:
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
 
-
-servo_frequency = 200
-servo_min_pulse = 0.7
-servo_max_pulse = 2.1
+servo_frequency = 50
+servo_min_pulse = 0.6
+servo_max_pulse = 2.3
 servo_neutral_pulse = 1.4
 servo_min_angle = -85.0
-servo_max_angle = 70.0
-servo_neutral_angle = -6.0
-chan = 15
+servo_max_angle = 85.0
+servo_neutral_angle = -0.0
+hip_channel = 15
+elbow_channel = 12
+shoulder_channel = 13
+gripper_channel = 14
 
+pwm.add_servo(hip_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
+pwm.add_servo(gripper_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
+pwm.add_servo(shoulder_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
+pwm.add_servo(elbow_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
 
-pwm.add_servo(chan, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
-pwm.add_servo(14, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
-pwm.add_servo(13, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
-pwm.add_servo(12, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
-
-logger.info('Moving servo on channel %d, press Ctrl-C to quit...', chan)
+logger.info('Press Ctrl-C to quit...')
 try:
+    elbow_neutral_angle = 0
+    elbow_max_angle = 84.5
+    elbow_min_angle = -25
+    elbow_angle = elbow_neutral_angle
 
-    angle1 = -10.0
-    angle2 = 40.0
-    angle3 = -55.0
-    angle4 = 0.0
+    shoulder_neutral_angle = 40
+    shoulder_max_angle = 65
+    shoulder_min_angle = -15
+    shoulder_angle = shoulder_neutral_angle
+
+    gripper_closed_angle = 27.5
+    gripper_open_angle = -20
+
+    hip_neutral_angle = 0
+    hip_max_angle = 84.5
+    hip_min_angle = -84.5
+    hip_angle = hip_neutral_angle
+
     while True:
-        pwm.set_servo_angle(15, 0) #base
-        pwm.set_servo_angle(14, angle3) #gripper
-        pwm.set_servo_angle(13, angle2) #hip
-        pwm.set_servo_angle(12, angle1) #shoulder
+        pwm.set_servo_angle(hip_channel, hip_angle) #hip
+        pwm.set_servo_angle(gripper_channel, gripper_open_angle) #gripper
+        pwm.set_servo_angle(shoulder_channel, shoulder_angle) #shoulder
+        pwm.set_servo_angle(elbow_channel, elbow_angle) #elbow
 
-        inc = 0.25
+        inc = 0.5
 
 
-        while angle1 < servo_max_angle:
-            pwm.set_servo_angle(12, angle1)
-            angle1 += inc
+        while elbow_angle < elbow_max_angle:
+            pwm.set_servo_angle(elbow_channel, elbow_angle)
+            elbow_angle += inc
 
-        while angle2 > servo_min_angle+70:
-            pwm.set_servo_angle(13, angle2)
-            angle2 -= inc
-
-        while angle4 > servo_min_angle:
-            pwm.set_servo_angle(15, angle4)
-            angle4 -= inc
-
-        while angle2 < servo_max_angle-20:
-            pwm.set_servo_angle(13, angle2)
-            angle2 += inc
-
-        while angle1 > servo_min_angle+60:
-            pwm.set_servo_angle(12, angle1)
-            angle1 -= inc
-
-        while angle4 < servo_max_angle:
-            pwm.set_servo_angle(15, angle4)
-            angle4 += inc
+        while shoulder_angle > shoulder_min_angle:
+            pwm.set_servo_angle(shoulder_channel, shoulder_angle)
+            shoulder_angle -= inc
 
         time.sleep(1)
-        pwm.set_servo_angle(14, -5) #gripper
+        pwm.set_servo_angle(gripper_channel, gripper_closed_angle) #gripper
         time.sleep(1)
 
-        while angle4 > 0:
-            pwm.set_servo_angle(15, angle4)
-            angle4 -= inc
+        while hip_angle > hip_min_angle:
+            pwm.set_servo_angle(hip_channel, hip_angle)
+            hip_angle -= inc
+
+        while shoulder_angle < shoulder_max_angle:
+            pwm.set_servo_angle(shoulder_channel, shoulder_angle)
+            shoulder_angle += inc
+
+        while elbow_angle > elbow_min_angle:
+            pwm.set_servo_angle(elbow_channel, elbow_angle)
+            elbow_angle -= inc
+
+        while hip_angle < hip_max_angle:
+            pwm.set_servo_angle(hip_channel, hip_angle)
+            hip_angle += inc
+
+        time.sleep(1)
+        pwm.set_servo_angle(gripper_channel, gripper_open_angle) #gripper
+        time.sleep(1)
+
+        while hip_angle > hip_neutral_angle:
+            pwm.set_servo_angle(hip_channel, hip_angle)
+            hip_angle -= inc
 
 finally:
-    pwm.set_servo_angle(15, 0)
-    pwm.set_servo_angle(13, servo_min_angle+70)
-    pwm.set_servo_angle(12, servo_max_angle)
-    pwm.set_servo_angle(14, -55)
+    pwm.set_servo_angle(hip_channel, hip_neutral_angle)
+    pwm.set_servo_angle(shoulder_channel, shoulder_neutral_angle)
+    pwm.set_servo_angle(elbow_channel, elbow_neutral_angle)
+    pwm.set_servo_angle(gripper_channel, gripper_open_angle)
 
     time.sleep(5)
     servo.software_reset()

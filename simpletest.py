@@ -19,13 +19,14 @@ pwm = servo.PCA9685(address=0x40)
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
 
 
-servo_frequency = 200
-servo_min_pulse = 0.7
-servo_max_pulse = 2.1
+servo_frequency = 50
+
+servo_min_pulse = 0.6
+servo_max_pulse = 2.3
 servo_neutral_pulse = 1.4
 servo_min_angle = -85.0
-servo_max_angle = 70.0
-servo_neutral_angle = -6.0
+servo_max_angle = 85.0
+servo_neutral_angle = -0.0
 chan = 0
 
 
@@ -41,11 +42,19 @@ try:
             pwm.set_servo_angle(chan, angle)
             angle += inc
 
+        time.sleep(0.5)
+
         while angle > servo_min_angle:
             pwm.set_servo_angle(chan, angle)
             angle -= inc
 
+        time.sleep(0.5)
+
 finally:
-    pwm.set_servo_pulse(chan, servo_neutral_pulse)
+    pwm.set_servo_pulse(chan, servo_min_pulse)
+    time.sleep(5)
+    pwm.set_servo_pulse(chan, servo_max_pulse)
+    time.sleep(5)
+    pwm.set_servo_pulse(chan,25)
     time.sleep(0.5)
     servo.software_reset()

@@ -56,12 +56,18 @@ OUTDRV = 0x04
 
 logger = logging.getLogger(__name__)
 
+def ensureI2C(i2c=None):
+    """Ensures I2C device interface"""
+    if i2c is None:
+        logger.info('Initializing I2C.')
+        #import Adafruit_GPIO.I2C as I2C
+        i2c = I2C
+    return i2c
+
 def software_reset(i2c=None, **kwargs):
     """Sends a software reset (SWRST) command to all servo drivers on the bus."""
     # Setup I2C interface for device 0x00 to talk to all of them.
-    if i2c is None:
-        import Adafruit_GPIO.I2C as I2C
-        i2c = I2C
+    i2c = ensureI2C(i2c)
     d = i2c.get_i2c_device(0x00, **kwargs)
     d.writeRaw8(0x06)  # SWRST
     logger.info('Servo controllers have been reset.')
@@ -69,10 +75,29 @@ def software_reset(i2c=None, **kwargs):
 class Servo(object):
     """Represents a servo on the controller."""
 
-    def __init__(self, frequency=200, min_pulse=0.7, max_pulse=2.1, neutral_pulse=1.4,
-                 min_angle=-90, max_angle=90, neutral_angle=0,
-                 resolution=4096):
-        """Initialize Servo"""
+    def __init__(self:Servo, controller, channel:int, frequency:int=200, 
+                 min_pulse:float=0.7, max_pulse:float=2.1, neutral_pulse:float=1.4,
+                 min_angle:float=-90, max_angle:float=90, neutral_angle:float=0,
+                 resolution:int=4096) -> Servo:
+        """Initialize Servo
+            Attributes:
+                controller:         the controller hosting the servo.
+                channel:            the channel on which the servo is operating.
+                frequency:          the frequency for the servo.
+                min_pulse:          the minimum signal pulse length.
+                max_pulse:          the maximum signal pulse length.
+                neutral_pulse:      the lenght of a pulse for the neutral position
+                min_angle:          the minimum servo angle achieved via min_pulse.
+                max_angle:          the maximum servo angle achieved via max_pulse.
+                neutral_angle:      the neutral angle achieved via neutral_pulse.
+                pulse_resolution:   the pulse resolution. This will generally be 4096, but can be
+                                    adjusted for each servo to achieve the desired width. Use
+                                    a scope on the controller to verify that the actual pulse
+                                    length corresponds to the requested pulse length and tweak this
+                                    parameter until it does.
+        """
+        self.controller = controller
+        self.channel = channel
         self.frequency = frequency
         self.min_pulse = min_pulse
         self.max_pulse = max_pulse
@@ -81,13 +106,19 @@ class Servo(object):
         self.max_angle = max_angle
         self.neutral_angle = neutral_angle
         self.pulse_resolution = resolution
+        self.ticks = 0
+        self.angle = 0
+        self.pulse = 0
 
         #caluclate boundary ticks for servo
         self.servo_min = self.calculate_servo_ticks_from_pulse(self.min_pulse)
         self.servo_max = self.calculate_servo_ticks_from_pulse(self.max_pulse)
         self.servo_neutral = self.calculate_servo_ticks_from_pulse(self.neutral_pulse)
-
-    def calculate_servo_ticks_from_pulse(self, pulse):
+        
+        #initialize servo
+        self.set_angle(self.neutral_angle)
+        
+    def calculate_servo_ticks_from_pulse(self:Servo, pulse:float) -> int:
         """Calculate the number of on ticks to achieve a certain pulse."""
 
         if pulse < self.min_pulse or pulse > self.max_pulse:
@@ -101,7 +132,7 @@ class Servo(object):
         pulse //= pulse_length
         return int(pulse)
 
-    def calculate_servo_ticks_from_angle(self, angle):
+    def calculate_servo_ticks_from_angle(self:Servo, angle:float) -> (float, int):
         """Calculate the number of on ticks to achieve a certain servo angle."""
 
         if angle < self.min_angle or angle > self.max_angle:
@@ -116,17 +147,36 @@ class Servo(object):
             pulse -= ((angle + self.neutral_angle) * (self.neutral_pulse - self.min_pulse)) / \
                 (self.min_angle + self.neutral_angle)
         logger.info('Angle %d -> pulse %f', angle, pulse)
-        return self.calculate_servo_ticks_from_pulse(pulse)
+        return self.calculate_servo_ticks_from_pulse(pulse), pulse
+
+    def get_state(self:Servo) -> (float, float, float):
+        """Return the current servo state."""
+        return self.ticks, self.pulse, self.angle
+
+    def set_pulse(self:Servo, pulse: float):
+        """Sets the servo to a certain pulse width."""
+        ticks = self.calculate_servo_ticks_from_pulse(pulse)
+        logger.info('Channel %d: %f pulse -> %d ticks', self.channel, pulse, ticks)
+        self.controller.set_pwm(self.channel, 0, ticks)
+        self.pulse = pulse
+        self.ticks = ticks
+
+    def set_angle(self:Servo, angle:float):
+        """Sets the servo to a certain angle."""
+        ticks, pulse = self.calculate_servo_ticks_from_angle(angle)
+        logger.info('Channel %d: %f angle -> %d ticks', self.channel, angle, ticks)
+        self.controller.set_pwm(self.channel, 0, ticks)
+        self.angle = angle
+        self.ticks = ticks
+        self.pulse = pulse
+
 
 class PCA9685(object):
     """PCA9685 PWM LED/servo controller."""
 
     def __init__(self, address=PCA9685_ADDRESS, i2c=None, **kwargs):
         """Initialize the PCA9685."""
-        # Setup I2C interface for the device.
-        if i2c is None:
-            import Adafruit_GPIO.I2C as I2C
-            i2c = I2C
+        i2c = ensureI2C(i2c)
         self.servos = {}
         self.frequency = None
         self._address = address
@@ -140,9 +190,10 @@ class PCA9685(object):
         self._device.write8(MODE1, mode1)
         time.sleep(0.005)  # wait for oscillator
 
-    def add_servo(self, channel, frequency=200, min_pulse=0.7, max_pulse=2.1, neutral_pulse=1.4,
-                  min_angle=-90, max_angle=90, neutral_angle=0,
-                  pulse_resolution=4096):
+    def add_servo(self, channel: int, frequency:int=200, 
+                  min_pulse:float=0.7, max_pulse:float=2.1, neutral_pulse:float=1.4,
+                  min_angle:float=-90.0, max_angle:float=90.0, neutral_angle:float=0.0,
+                  pulse_resolution:int=4096):
         """Adds a servo definition for a given channel.
            Attributes:
                 channel:            the channel on which the servo is operating.
@@ -159,9 +210,6 @@ class PCA9685(object):
                                     length corresponds to the requested pulse length and tweak this
                                     parameter until it does.
         """
-        self.servos[channel] = Servo(frequency, min_pulse, max_pulse, neutral_pulse,
-                                     min_angle, max_angle, neutral_angle,
-                                     pulse_resolution)
         if self.frequency is None:
             self.frequency = frequency
             self.set_pwm_freq(frequency)
@@ -170,29 +218,35 @@ class PCA9685(object):
                 raise Exception('Incompatible frequency %d. All servos must operate on the same \
                     frequency. Presvioulsy registered frequency: %d' % (frequency, self.frequency))
 
+        self.servos[channel] = Servo(frequency, self, channel, min_pulse, max_pulse, neutral_pulse,
+                                     min_angle, max_angle, neutral_angle,
+                                     pulse_resolution)
 
-    def set_servo_pulse(self, channel, pulse):
+    def get_servo_state(self, channel:int) -> (float, float, float):
+        """Gets the servo state on channel (ticks, pulse and angle)."""
+        servo = self.servos[channel]
+        if servo is None:
+            raise Exception('There is no servo registered on channel %d' % channel)
+        else:
+            return servo.get_state()       
+
+    def set_servo_pulse(self, channel:int, pulse:float):
         """Sets the servo on channel to a certain pulse width."""
         servo = self.servos[channel]
         if servo is None:
             raise Exception('There is no servo registered on channel %d' % channel)
         else:
-            ticks = servo.calculate_servo_ticks_from_pulse(pulse)
-            logger.info('Channel %d: %f pulse -> %d ticks', channel, pulse, ticks)
-            self.set_pwm(channel, 0, ticks)
+            servo.set_pulse(pulse)
 
-    def set_servo_angle(self, channel, angle):
+    def set_servo_angle(self, channel:int, angle:float):
         """Sets the servo on channel to a certain angle."""
         servo = self.servos[channel]
         if servo is None:
             raise Exception('There is no servo registered on channel %d' % channel)
         else:
-            ticks = servo.calculate_servo_ticks_from_angle(angle)
-            logger.info('Channel %d: %f angle -> %d ticks', channel, angle, ticks)
-            self.set_pwm(channel, 0, ticks)
+            servo.set_angle(angle)
 
-
-    def set_pwm_freq(self, freq_hz):
+    def set_pwm_freq(self, freq_hz:int):
         """Set the PWM frequency to the provided value in hertz."""
         prescaleval = 25000000.0    # 25MHz
         prescaleval /= 4096.0       # 12-bit
@@ -210,26 +264,17 @@ class PCA9685(object):
         time.sleep(0.005)
         self._device.write8(MODE1, oldmode | 0x80)
 
-    def set_pwm(self, channel, on_ticks, off_ticks):
+    def set_pwm(self, channel:int, on_ticks:int, off_ticks:int):
         """Sets a single PWM channel."""
         self._device.write8(LED0_ON_L+4*channel, on_ticks & 0xFF)
         self._device.write8(LED0_ON_H+4*channel, on_ticks >> 8)
         self._device.write8(LED0_OFF_L+4*channel, off_ticks & 0xFF)
         self._device.write8(LED0_OFF_H+4*channel, off_ticks >> 8)
 
-    def set_all_pwm(self, on_ticks, off_ticks):
+    def set_all_pwm(self, on_ticks:int, off_ticks:int):
         """Sets all PWM channels."""
         self._device.write8(ALL_LED_ON_L, on_ticks & 0xFF)
         self._device.write8(ALL_LED_ON_H, on_ticks >> 8)
         self._device.write8(ALL_LED_OFF_L, off_ticks & 0xFF)
         self._device.write8(ALL_LED_OFF_H, off_ticks >> 8)
 
-    def software_reset(self, i2c=None, **kwargs):
-        """Sends a software reset (SWRST) command to current servo driver."""
-        if i2c is None:
-            import Adafruit_GPIO.I2C as I2C
-            i2c = I2C
-        if self._device is None:
-            self._device = i2c.get_i2c_device(self._address, **kwargs)
-        self._device.writeRaw8(0x06)  # SWRST
-        logger.info('Controller at address %s has been reset.', self._address)

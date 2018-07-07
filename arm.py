@@ -14,31 +14,31 @@ class me_arm(object):
     """Control meArm"""
 
     # servo defaults
-    servo_frequency = 50        # default servo frequency
-    servo_min_pulse = 0.6       # default servo min pulse (tuned for SG90S from Mizui)
-    servo_max_pulse = 2.3       # default servo max pulse (tuned for SG90S from Mizui)
-    servo_neutral_pulse = 1.4   # default servo neutral pulse (tuned for SG90S from Mizui)
-    servo_min_angle = -85.0     # default servo min angle (tuned for SG90S from Mizui)
-    servo_max_angle = 85.0      # default servo max angle (tuned for SG90S from Mizui)
-    servo_neutral_angle = -0.0  # default servo neutral angle (tuned for SG90S from Mizui)
-    servo_resolution = 4256     # tuned to generate exact pulse width accounting for calculation rounding error
+    servo_frequency = 50            # default servo frequency
+    servo_min_pulse = 0.6           # default servo min pulse (tuned for SG90S from Mizui)
+    servo_max_pulse = 2.3           # default servo max pulse (tuned for SG90S from Mizui)
+    servo_neutral_pulse = 1.4       # default servo neutral pulse (tuned for SG90S from Mizui)
+    servo_min_angle = -85.0         # default servo min angle (tuned for SG90S from Mizui)
+    servo_max_angle = 85.0          # default servo max angle (tuned for SG90S from Mizui)
+    servo_neutral_angle = -0.0      # default servo neutral angle (tuned for SG90S from Mizui)
+    servo_resolution = 4256         # tuned to generate exact pulse width accounting for calculation rounding error
 
     # arm neutrals and boundaries
-    elbow_neutral_angle = 0     # servo angle for elbow neutral position
-    shoulder_neutral_angle = 40 # servo angle for shoulder neutral position
-    hip_neutral_angle = 0       # servo angle for hip neutral position
+    elbow_neutral_angle = 0.0       # servo angle for elbow neutral position
+    shoulder_neutral_angle = 40.0   # servo angle for shoulder neutral position
+    hip_neutral_angle = 0.0         # servo angle for hip neutral position
 
-    elbow_max_angle = 84.5      # servo angle for elbow max position
-    shoulder_max_angle = 65     # servo angle for shoulder max position
-    hip_max_angle = 84.5        # servo angle for hip max position
+    elbow_max_angle = 84.5          # servo angle for elbow max position
+    shoulder_max_angle = 65.0       # servo angle for shoulder max position
+    hip_max_angle = 84.5            # servo angle for hip max position
 
-    elbow_min_angle = -25       # servo angle for elbow min position
-    shoulder_min_angle = -15    # servo angle for shoulder min position
-    hip_min_angle = -84.5       # servo angle for hip min position
+    elbow_min_angle = -25.0         # servo angle for elbow min position
+    shoulder_min_angle = -15.0      # servo angle for shoulder min position
+    hip_min_angle = -84.5           # servo angle for hip min position
 
-    gripper_closed_angle = 27.5 # servo angle for closed gripper
-    gripper_open_angle = -20    # servo angle for open gripper
-    inc = 0.5                   # servo movement increment in degrees
+    gripper_closed_angle = 27.5     # servo angle for closed gripper
+    gripper_open_angle = -20.0      # servo angle for open gripper
+    inc = 0.5                       # servo movement increment in degrees
 
     Instance = None
 
@@ -55,15 +55,16 @@ class me_arm(object):
             logger.error(msg)
             raise Exception(msg)
 
-        self.logger = logging.getLogger(__name__)
-        self.hip_channel = hip_channel
-        self.elbow_channel = elbow_channel
-        self.shoulder_channel = shoulder_channel
-        self.gripper_channel = gripper_channel
+        self.kinematics:kinematics.Kinematics = kinematics.Kinematics()
+        self.logger:logging.Logger = logging.getLogger(__name__)
+        self.hip_channel:int = hip_channel
+        self.elbow_channel:int = elbow_channel
+        self.shoulder_channel:int = shoulder_channel
+        self.gripper_channel:int = gripper_channel
         self.__setup_defaults()
 
         # Initialise the PCA9685 using the default address (0x40).
-        self.pwm = servo.PCA9685(address=0x40)  
+        self.pwm:servo.PCA9685 = servo.PCA9685(address=0x40)  
             # Alternatively specify a different address and/or bus: servo.PCA9685(address=0x40, busnum=2)
         if initialize: self.initialize()
         me_arm.Instance = self
@@ -73,45 +74,47 @@ class me_arm(object):
         self.frequency = me_arm.servo_frequency
 
         # defaults for hip servo
-        self.hip_min_pulse = me_arm.servo_min_pulse
-        self.hip_max_pulse = me_arm.servo_max_pulse
-        self.hip_neutral_pulse = me_arm.servo_neutral_pulse
-        self.hip_min_angle = me_arm.servo_min_angle
-        self.hip_max_angle = me_arm.servo_max_angle
-        self.hip_neutral_angle = me_arm.servo_neutral_angle
-        self.hip_resolution = me_arm.servo_resolution
+        self.hip_min_pulse:float = me_arm.servo_min_pulse
+        self.hip_max_pulse:float = me_arm.servo_max_pulse
+        self.hip_neutral_pulse:float = me_arm.servo_neutral_pulse
+        self.hip_min_angle:float = me_arm.servo_min_angle
+        self.hip_max_angle:float = me_arm.servo_max_angle
+        self.hip_neutral_angle:float = me_arm.servo_neutral_angle
+        self.hip_resolution:float = me_arm.servo_resolution
 
         # defaults for shoulder servo
-        self.shoulder_min_pulse = me_arm.servo_min_pulse
-        self.shoulder_max_pulse = me_arm.servo_max_pulse
-        self.shoulder_neutral_pulse = me_arm.servo_neutral_pulse
-        self.shoulder_min_angle = me_arm.servo_min_angle
-        self.shoulder_max_angle = me_arm.servo_max_angle
-        self.shoulder_neutral_angle = me_arm.servo_neutral_angle
-        self.shoulder_resolution = me_arm.servo_resolution
+        self.shoulder_min_pulse:float = me_arm.servo_min_pulse
+        self.shoulder_max_pulse:float = me_arm.servo_max_pulse
+        self.shoulder_neutral_pulse:float = me_arm.servo_neutral_pulse
+        self.shoulder_min_angle:float = me_arm.servo_min_angle
+        self.shoulder_max_angle:float = me_arm.servo_max_angle
+        self.shoulder_neutral_angle:float = me_arm.servo_neutral_angle
+        self.shoulder_resolution:float = me_arm.servo_resolution
 
         # defaults for elbow servo
-        self.elbow_min_pulse = me_arm.servo_min_pulse
-        self.elbow_max_pulse = me_arm.servo_max_pulse
-        self.elbow_neutral_pulse = me_arm.servo_neutral_pulse
-        self.elbow_min_angle = me_arm.servo_min_angle
-        self.elbow_max_angle = me_arm.servo_max_angle
-        self.elbow_neutral_angle = me_arm.servo_neutral_angle
-        self.elbow_resolution = me_arm.servo_resolution
+        self.elbow_min_pulse:float = me_arm.servo_min_pulse
+        self.elbow_max_pulse:float = me_arm.servo_max_pulse
+        self.elbow_neutral_pulse:float = me_arm.servo_neutral_pulse
+        self.elbow_min_angle:float = me_arm.servo_min_angle
+        self.elbow_max_angle:float = me_arm.servo_max_angle
+        self.elbow_neutral_angle:float = me_arm.servo_neutral_angle
+        self.elbow_resolution:float = me_arm.servo_resolution
 
         # defaults for gripper servo
-        self.gripper_min_pulse = me_arm.servo_min_pulse
-        self.gripper_max_pulse = me_arm.servo_max_pulse
-        self.gripper_neutral_pulse = me_arm.servo_neutral_pulse
-        self.gripper_min_angle = me_arm.servo_min_angle
-        self.gripper_max_angle = me_arm.servo_max_angle
-        self.gripper_neutral_angle = me_arm.servo_neutral_angle
-        self.gripper_resolution = me_arm.servo_resolution
+        self.gripper_min_pulse:float = me_arm.servo_min_pulse
+        self.gripper_max_pulse:float = me_arm.servo_max_pulse
+        self.gripper_neutral_pulse:float = me_arm.servo_neutral_pulse
+        self.gripper_min_angle:float = me_arm.servo_min_angle
+        self.gripper_max_angle:float = me_arm.servo_max_angle
+        self.gripper_neutral_angle:float = me_arm.servo_neutral_angle
+        self.gripper_resolution:float = me_arm.servo_resolution
 
         #current angles
-        self.elbow_angle = me_arm.elbow_neutral_angle
-        self.shoulder_angle = me_arm.shoulder_neutral_angle
-        self.hip_angle = me_arm.hip_neutral_angle
+        self.elbow_angle:float = me_arm.elbow_neutral_angle
+        self.shoulder_angle:float = me_arm.shoulder_neutral_angle
+        self.hip_angle:float = me_arm.hip_neutral_angle
+        x, y, z = self.kinematics.toCartesian(self.hip_angle, self.shoulder_angle, self.elbow_angle)
+        self.position:kinematics.Point = kinematics.Point.fromCartesian(x, y, z)        
 
     @classmethod
     def createWithServoParameters(cls,
@@ -130,6 +133,55 @@ class me_arm(object):
         """Close the gripper, grabbing onto anything that might be there"""
         self.pwm.set_servo_angle(self.gripper_channel, me_arm.gripper_closed_angle)
         time.sleep(0.3)
+
+    def is_reachable(self, point:kinematics.Point) -> (bool, float, float, float):
+        """Returns True if the point is (theoretically) reachable by the gripper"""
+        hip, shoulder, elbow = self.kinematics.fromCartesian(point.x, point.y, point.z)
+        isReachable = True
+        if hip < me_arm.hip_min_angle or hip > me_arm.hip_max_angle: isReachable = False
+        if shoulder < me_arm.shoulder_min_angle or shoulder > me_arm.shoulder_max_angle: isReachable = False
+        if elbow < me_arm.elbow_min_angle or elbow > me_arm.elbow_max_angle: isReachable = False
+        return isReachable, hip, shoulder, elbow
+    
+    def get_position(self) -> kinematics.Point:
+        """Returns the current position of the gripper"""
+        return self.position
+
+    def go_directly_to_point(self, target:kinematics.Point):
+        """Set servo angles so as to place the gripper at a given Cartesian point as quickly as possible, without caring what path it takes to get there"""
+
+        is_reachable, hip, shoulder, elbow = self.is_reachable(target)
+        if not is_reachable:
+            msg = "Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z)
+            self.logger.error(msg)
+            raise Exception(msg)       
+
+        self.pwm.set_servo_angle(self.hip_channel, hip)
+        self.pwm.set_servo_angle(self.shoulder_channel, shoulder)
+        self.pwm.set_servo_angle(self.elbow_channel, elbow)
+        self.position = target
+        self.hip_angle = hip
+        self.shoulder_angle = shoulder
+        self.elbow_angle = elbow
+        self.logger("Goto point x: %d, y: %d, z: %d", target.x, target.y, target.z)
+
+    def go_to_point(self, target:kinematics.Point, resolution:int=10):
+        """Travel in a straight line from current position to a requested position"""
+        if not self.is_reachable(target)[0]:
+            raise Exception("Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z))
+        
+        dist = self.position.distance(target)
+        i = 0
+        while i < dist:
+            p = kinematics.Point.fromCartesian(
+                self.position.x + (target.x - self.position.x) * i / dist, 
+                self.position.y + (target.y - self.position.y) * i / dist, 
+                self.position.z + (target.z - self.position.z) * i / dist)
+            self.go_directly_to_point(p)
+            time.sleep(0.05)
+            i += resolution
+        self.go_directly_to_point(target)
+        time.sleep(0.05)
 
     def initialize(self):
         """Registers the servo."""

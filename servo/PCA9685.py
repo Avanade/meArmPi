@@ -60,7 +60,7 @@ def ensureI2C(i2c=None):
     """Ensures I2C device interface"""
     if i2c is None:
         logger.info('Initializing I2C.')
-        #import Adafruit_GPIO.I2C as I2C
+        import Adafruit_GPIO.I2C as I2C
         i2c = I2C
     return i2c
 

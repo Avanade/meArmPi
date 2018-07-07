@@ -144,7 +144,7 @@ class Kinematics(object):
         z = v
         return x, y, z
 
-    def solve(self, x: float, y: float, z: float) -> (float, float, float):
+    def fromCartesian(self, x: float, y: float, z: float) -> (float, float, float):
         """
             Calculates the servo actuation angles requires to position the claw at a certain cartesian coordinate
             Argumants:

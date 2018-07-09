@@ -2,8 +2,8 @@
 """Simple test program for servo actuation"""
 import time
 import logging
-import servo
 import atexit
+import servo
 
 # Uncomment to enable debug output.
 logging.basicConfig(level=logging.INFO)
@@ -78,7 +78,7 @@ pwm.set_servo_angle(hip_channel, hip_angle) #hip
 pwm.set_servo_angle(gripper_channel, gripper_open_angle) #gripper
 pwm.set_servo_angle(shoulder_channel, shoulder_angle) #shoulder
 pwm.set_servo_angle(elbow_channel, elbow_angle) #elbow
-while True:     
+while True:
     while elbow_angle < elbow_max_angle:
         pwm.set_servo_angle(elbow_channel, elbow_angle)
         elbow_angle += inc

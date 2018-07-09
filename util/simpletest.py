@@ -6,8 +6,8 @@
 """Simple test program for servo actuation"""
 import time
 import logging
-import servo
 import atexit
+import servo
 
 # Uncomment to enable debug output.
 logging.basicConfig(level=logging.INFO)
@@ -24,20 +24,23 @@ chan = 0
 
 # use to tune the servo
 servo_min_pulse = 0.6
-servo_max_pulse = 2.3
-servo_neutral_pulse = 1.4
+servo_max_pulse = 2.4
+servo_neutral_pulse = 1.5
 servo_min_angle = -85.0
 servo_max_angle = 85.0
 servo_neutral_angle = -0.0
 
 def shutdown():
-    """Puts the servo through it limit positions returning to netural and then resets the controller"""
+    """
+        Puts the servo through it limit positions returning to netural and then
+        resets the controller
+    """
     logger.info('Resetting servo and controller...')
     pwm.set_servo_pulse(chan, servo_min_pulse)
     time.sleep(5)
     pwm.set_servo_pulse(chan, servo_max_pulse)
     time.sleep(5)
-    pwm.set_servo_pulse(chan,25)
+    pwm.set_servo_pulse(chan, servo_neutral_pulse)
     time.sleep(5)
     servo.software_reset()
 
@@ -46,29 +49,36 @@ atexit.register(shutdown)
 
 #add the servo
 pwm.add_servo(
-    chan, 
-    servo_frequency, 
-    servo_min_pulse, 
-    servo_max_pulse, 
+    chan,
+    servo_frequency,
+    servo_min_pulse,
+    servo_max_pulse,
     servo_neutral_pulse,
-    servo_min_angle, 
-    servo_max_angle, 
-    servo_neutral_angle, 
+    servo_min_angle,
+    servo_max_angle,
+    servo_neutral_angle,
     4256)
 
 logger.info('Moving servo on channel %d, press Ctrl-C to quit...', chan)
 while True:
     #perform continous back and forth until user aborts
-    angle = servo_min_angle
+    angle = servo_min_angle + 0.01
     inc = 0.5
 
-    while angle < servo_max_angle:
+    pwm.set_servo_pulse(chan, servo_neutral_pulse)
+    time.sleep(5)
+    pwm.set_servo_pulse(chan, servo_min_pulse)
+    time.sleep(5)
+    pwm.set_servo_pulse(chan, servo_max_pulse)
+    time.sleep(5)
+
+    while angle < servo_max_angle - 0.5:
         pwm.set_servo_angle(chan, angle)
         angle += inc
 
     time.sleep(0.5)
 
-    while angle > servo_min_angle:
+    while angle > servo_min_angle + 0.5:
         pwm.set_servo_angle(chan, angle)
         angle -= inc
 

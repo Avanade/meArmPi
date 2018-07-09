@@ -17,7 +17,7 @@ class Point(object):
         self.lat = 0
 
     @classmethod
-    def fromCartesian(cls, x: float, y: float, z: float) -> cls:
+    def fromCartesian(cls, x: float, y: float, z: float):
         """
             Generates a point based on cartesian coordinates
             Arguments:
@@ -29,14 +29,14 @@ class Point(object):
         p.x = x
         p.y = y
         p.z = z
-        p.r = p.distance(Point())
+        p.r = math.sqrt(x*x + y*y + z*z)
         p.lat = math.acos(z / p.r)
         p.lng = math.acos(x / math.sqrt(x*x*1.0 +y*y*1.0))
         if y < 0: p.lng = -p.lng
         return p
 
     @classmethod
-    def fromPolar(cls, r: float, lng: float, lat: float) -> cls:
+    def fromPolar(cls, r: float, lng: float, lat: float):
         """
             Generates a point based on polar coordinates
             Arguments:
@@ -53,7 +53,7 @@ class Point(object):
         p.z = r * math.cos(lat)
         return p
 
-    def distance(self, p: Point) -> float:
+    def distance(self, p) -> float:
         """ Returns the distance between this and another point"""
         dx = self.x - p.x
         dy = self.y - p.y

@@ -75,10 +75,10 @@ def software_reset(i2c=None, **kwargs):
 class Servo(object):
     """Represents a servo on the controller."""
 
-    def __init__(self:Servo, controller, channel:int, frequency:int=200, 
+    def __init__(self, controller, channel:int, frequency:int=200, 
                  min_pulse:float=0.7, max_pulse:float=2.1, neutral_pulse:float=1.4,
                  min_angle:float=-90, max_angle:float=90, neutral_angle:float=0,
-                 resolution:int=4096) -> Servo:
+                 resolution:int=4096):
         """Initialize Servo
             Attributes:
                 controller:         the controller hosting the servo.
@@ -118,10 +118,10 @@ class Servo(object):
         #initialize servo
         self.set_angle(self.neutral_angle)
         
-    def calculate_servo_ticks_from_pulse(self:Servo, pulse:float) -> int:
+    def calculate_servo_ticks_from_pulse(self, pulse:float) -> int:
         """Calculate the number of on ticks to achieve a certain pulse."""
 
-        if pulse < self.min_pulse or pulse > self.max_pulse:
+        if str(pulse) < str(self.min_pulse) or str(pulse) > str(self.max_pulse):
             raise Exception('Pulse %f out of range. Must be between %f and %f' %
                             (pulse, self.min_pulse, self.max_pulse))
 
@@ -132,7 +132,7 @@ class Servo(object):
         pulse //= pulse_length
         return int(pulse)
 
-    def calculate_servo_ticks_from_angle(self:Servo, angle:float) -> (float, int):
+    def calculate_servo_ticks_from_angle(self, angle:float) -> (float, int):
         """Calculate the number of on ticks to achieve a certain servo angle."""
 
         if angle < self.min_angle or angle > self.max_angle:
@@ -149,11 +149,11 @@ class Servo(object):
         logger.info('Angle %d -> pulse %f', angle, pulse)
         return self.calculate_servo_ticks_from_pulse(pulse), pulse
 
-    def get_state(self:Servo) -> (float, float, float):
+    def get_state(self) -> (float, float, float):
         """Return the current servo state."""
         return self.ticks, self.pulse, self.angle
 
-    def set_pulse(self:Servo, pulse: float):
+    def set_pulse(self, pulse: float):
         """Sets the servo to a certain pulse width."""
         ticks = self.calculate_servo_ticks_from_pulse(pulse)
         logger.info('Channel %d: %f pulse -> %d ticks', self.channel, pulse, ticks)
@@ -161,7 +161,7 @@ class Servo(object):
         self.pulse = pulse
         self.ticks = ticks
 
-    def set_angle(self:Servo, angle:float):
+    def set_angle(self, angle:float):
         """Sets the servo to a certain angle."""
         ticks, pulse = self.calculate_servo_ticks_from_angle(angle)
         logger.info('Channel %d: %f angle -> %d ticks', self.channel, angle, ticks)
@@ -218,7 +218,7 @@ class PCA9685(object):
                 raise Exception('Incompatible frequency %d. All servos must operate on the same \
                     frequency. Presvioulsy registered frequency: %d' % (frequency, self.frequency))
 
-        self.servos[channel] = Servo(frequency, self, channel, min_pulse, max_pulse, neutral_pulse,
+        self.servos[channel] = Servo(self, channel, frequency, min_pulse, max_pulse, neutral_pulse,
                                      min_angle, max_angle, neutral_angle,
                                      pulse_resolution)
 

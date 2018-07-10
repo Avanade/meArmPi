@@ -1,20 +1,37 @@
-# Simple demo of of the PCA9685 PWM servo/LED controller library.
-# This will move channel 0 from min to max position repeatedly.
-# Author: Tony DiCola
-# License: Public Domain
+# Copyright (c) 2018 Avanade
+# Author: Thor Schueler
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
 # pylint: disable=C0103
-"""Simple test program for servo actuation"""
+"""Simple test for servo actuation"""
 import time
 import logging
 import atexit
-import servo
+import controller
 
 # Uncomment to enable debug output.
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialise the PCA9685 using the default address (0x40).
-pwm = servo.PCA9685(address=0x40)
+pwm = controller.PCA9685(address=0x40)
 
 # Alternatively specify a different address and/or bus:
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
@@ -42,7 +59,7 @@ def shutdown():
     time.sleep(5)
     pwm.set_servo_pulse(chan, servo_neutral_pulse)
     time.sleep(5)
-    servo.software_reset()
+    controller.software_reset()
 
 # restier shutdown steps
 atexit.register(shutdown)

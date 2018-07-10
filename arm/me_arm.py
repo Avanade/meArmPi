@@ -1,14 +1,31 @@
+# Copyright (c) 2018 Avanade
+# Author: Thor Schueler
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
 # pylint: disable=C0103
-"""Simple test program for servo actuation"""
+"""Module allowing control of a meArm using the RPI"""
 import time
 import logging
-import servo
+import controller
 import kinematics
 import atexit
-
-# Uncomment to enable debug output.
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class me_arm(object):
     """Control meArm"""
@@ -64,8 +81,8 @@ class me_arm(object):
         self.__setup_defaults()
 
         # Initialise the PCA9685 using the default address (0x40).
-        self.pwm = servo.PCA9685(address=0x40)  
-            # Alternatively specify a different address and/or bus: servo.PCA9685(address=0x40, busnum=2)
+        self.pwm = controller.PCA9685(address=0x40)  
+            # Alternatively specify a different address and/or bus: controller.PCA9685(address=0x40, busnum=2)
         if initialize: self.initialize()
         me_arm.Instance = self
     
@@ -214,7 +231,7 @@ class me_arm(object):
         self.pwm.set_servo_angle(self.elbow_channel, me_arm.elbow_neutral_angle)
         self.pwm.set_servo_angle(self.gripper_channel, me_arm.gripper_open_angle)
         time.sleep(0.3)
-        servo.software_reset()
+        controller.software_reset()
         me_arm.Instance = None
 
     def test(self):
@@ -262,10 +279,3 @@ def shutdown():
         me_arm.Instance.shutdown()
 
 atexit.register(shutdown)
-
-arm = me_arm()
-arm.close()
-time.sleep(2)
-arm.open()
-time.sleep(2)
-arm.test()

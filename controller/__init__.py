@@ -20,4 +20,5 @@
 # THE SOFTWARE.
 #
 # pylint: disable=C0103
-from .kinematis import Point, Kinematics
+from .servo import Servo
+from .PCA9685 import PCA9685, software_reset

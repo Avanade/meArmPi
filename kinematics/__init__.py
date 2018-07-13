@@ -20,4 +20,8 @@
 # THE SOFTWARE.
 #
 # pylint: disable=C0103
+"""
+    Kinematics module to translate cartesian/polar coordinates into servo angles for 
+    meArm.
+"""
 from .kinematis import Point, Kinematics

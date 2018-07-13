@@ -4,8 +4,8 @@ info:
   description: "A simple REST API to control a meArm robotic arm."
   version: "1.0.0"
   title: "Avanade meArm REST API"
-host: "virtserver.swaggerhub.com"
-basePath: "/thor-schueler/Avanade.meArm1/1.0.0"
+host: "127.0.0.1"
+basePath: "/Avanade.meArm/1.0.0"
 schemes:
 - "https"
 paths:
@@ -21,7 +21,7 @@ paths:
           description: "Successfully retrieved operational status of the meArm."
           schema:
             $ref: "#/definitions/Status"
-      x-swagger-router-controller: "swagger_server.controllers.status_controller"
+      x-swagger-router-controller: "server.controllers.status_controller"
   /arm/position:
     get:
       tags:
@@ -34,7 +34,7 @@ paths:
           description: "Successfully obtained position."
           schema:
             $ref: "#/definitions/Point"
-      x-swagger-router-controller: "swagger_server.controllers.status_controller"
+      x-swagger-router-controller: "server.controllers.status_controller"
   /arm/checkout:
     post:
       tags:
@@ -57,7 +57,7 @@ paths:
           description: "Cannot checkout because arm is checkout to another user."
           schema:
             $ref: "#/definitions/Status"
-      x-swagger-router-controller: "swagger_server.controllers.operation_controller"
+      x-swagger-router-controller: "server.controllers.operation_controller"
   /arm/checkin:
     post:
       tags:
@@ -95,7 +95,7 @@ paths:
             \ /arm/checkout."
           schema:
             $ref: "#/definitions/Status"
-      x-swagger-router-controller: "swagger_server.controllers.operation_controller"
+      x-swagger-router-controller: "server.controllers.operation_controller"
   /arm/operate:
     post:
       tags:
@@ -138,7 +138,7 @@ paths:
           description: "Too many steps. Reduce the number of opertions to 10 or less"
           schema:
             type: "object"
-      x-swagger-router-controller: "swagger_server.controllers.operation_controller"
+      x-swagger-router-controller: "server.controllers.operation_controller"
 definitions:
   Status:
     type: "object"

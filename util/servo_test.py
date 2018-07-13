@@ -37,15 +37,25 @@ pwm = controller.PCA9685(address=0x40)
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
 
 servo_frequency = 50
-chan = 0
+chan = 1
 
 # use to tune the servo
+# for Emax ES08MAII
+# servo_min_pulse = 0.6
+# servo_max_pulse = 2.4
+# servo_neutral_pulse = 1.5
+# servo_min_angle = -85.0
+# servo_max_angle = 85.0
+# servo_neutral_angle = -0.0
+
+# for Miuzei SG90
 servo_min_pulse = 0.6
-servo_max_pulse = 2.4
-servo_neutral_pulse = 1.5
+servo_max_pulse = 2.3
+servo_neutral_pulse = 1.4
 servo_min_angle = -85.0
 servo_max_angle = 85.0
 servo_neutral_angle = -0.0
+
 
 def shutdown():
     """

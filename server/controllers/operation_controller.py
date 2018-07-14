@@ -22,14 +22,17 @@
 """Operations controller for the RPI meArm REST interface."""
 import connexion
 import six
+import uuid
+import datetime
 
+from flask import make_response
 from server.models.inline_response200 import InlineResponse200  # noqa: E501
 from server.models.inline_response2001 import InlineResponse2001  # noqa: E501
 from server.models.inline_response2002 import InlineResponse2002  # noqa: E501
 from server.models.operations import Operations  # noqa: E501
 from server.models.status import Status  # noqa: E501
 from server import util
-
+from server import common
 
 def checkin(token):  # noqa: E501
     """checkin
@@ -54,8 +57,20 @@ def checkout():  # noqa: E501
 
     :rtype: InlineResponse200
     """
-    return 'do some magic!'
+    if common.Token is not None:
+        return common.Status, 403
 
+    common.Token = uuid.UUID()
+    common.Status = Status(
+        common.Hostname,
+        common.Version,
+        True,
+        datetime.datetime.now(),
+        0,
+        None)
+
+    response = InlineResponse200(common.Token)
+    return response
 
 def operate(token, operations):  # noqa: E501
     """operate

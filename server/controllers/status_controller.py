@@ -26,6 +26,7 @@ import six
 from server.models.point import Point as PointModel  # noqa: E501
 from server.models.status import Status  # noqa: E501
 from server import util
+from server import common
 
 
 def get_arm():  # noqa: E501
@@ -36,8 +37,7 @@ def get_arm():  # noqa: E501
 
     :rtype: Status
     """
-    status = Status()
-    return status
+    return common.Status
 
 
 def get_position():  # noqa: E501
@@ -48,5 +48,6 @@ def get_position():  # noqa: E501
 
     :rtype: Point
     """
-    point = PointModel(0, 0, 0, 0, 0, 0)
-    return point
+    if common.Status.position is None:
+        return PointModel(0, 0, 0, 0, 0, 0)
+    return common.Status.position

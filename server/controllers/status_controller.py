@@ -37,8 +37,7 @@ def get_arm():  # noqa: E501
 
     :rtype: Status
     """
-    return common.Status
-
+    return common.Status.to_dict()
 
 def get_position():  # noqa: E501
     """get_position
@@ -49,5 +48,5 @@ def get_position():  # noqa: E501
     :rtype: Point
     """
     if common.Status.position is None:
-        return PointModel(0, 0, 0, 0, 0, 0)
-    return common.Status.position
+        return PointModel(0, 0, 0, 0, 0, 0).to_dict()
+    return common.Status.position.to_dict()

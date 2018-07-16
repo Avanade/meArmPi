@@ -46,6 +46,7 @@ def checkin(token):  # noqa: E501
     """
     #if connexion.request.is_json:
     #    token = .from_dict(connexion.request.get_json())  # noqa: E501
+    print (token)
     return 'do some magic!'
 
 
@@ -60,7 +61,7 @@ def checkout():  # noqa: E501
     if common.Token is not None:
         return common.Status, 403
 
-    common.Token = uuid.UUID()
+    common.Token = uuid.uuid4()
     common.Status = Status(
         common.Hostname,
         common.Version,

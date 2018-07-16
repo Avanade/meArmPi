@@ -4,7 +4,7 @@ info:
   description: "A simple REST API to control a meArm robotic arm."
   version: "1.0.0"
   title: "Avanade meArm REST API"
-host: "127.0.0.1"
+host: "192.168.1.253:8080"
 basePath: "/Avanade.meArm/1.0.0"
 schemes:
 - "https"

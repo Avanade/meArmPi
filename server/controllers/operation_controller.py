@@ -20,21 +20,22 @@
 # THE SOFTWARE.
 #
 """Operations controller for the RPI meArm REST interface."""
-import connexion
-import six
 import uuid
 import datetime
+import connexion
 
-from flask import make_response
 from server.models.inline_response200 import InlineResponse200  # noqa: E501
 from server.models.inline_response2001 import InlineResponse2001  # noqa: E501
 from server.models.inline_response2002 import InlineResponse2002  # noqa: E501
 from server.models.operations import Operations  # noqa: E501
+from server.models.operation import Operation  # noqa: E501
 from server.models.status import Status  # noqa: E501
-from server import util
 from server import common
 
-def checkin(token):  # noqa: E501
+def checkin(): # noqa: E501
+    # currently, header parameters will not be passed as arguments to controller
+    # methods in connexion
+    # http://connexion.readthedocs.io/en/latest/request.html#header-parameters
     """checkin
 
     Checks in the arm to complete the session and remove the lock # noqa: E501
@@ -44,10 +45,23 @@ def checkin(token):  # noqa: E501
 
     :rtype: InlineResponse2001
     """
-    #if connexion.request.is_json:
-    #    token = .from_dict(connexion.request.get_json())  # noqa: E501
-    print (token)
-    return 'do some magic!'
+    if connexion.request.headers['token'] is None:
+        return 'Missing header value "token"', 400
+
+    token = None
+    try:
+        token = uuid.UUID(connexion.request.headers['token'])
+    except ValueError:
+        return 'Invalid token format', 400
+
+    if token != common.Token:
+        return common.Status, 403
+
+    ops = common.Status.movements_since_checkout
+    duration = (datetime.datetime.now() - common.Status.checked_out_since).total_seconds()
+    common.Status = Status(common.HOSTNAME, common.VERSION, False)
+    common.Token = None
+    return InlineResponse2001(False, duration, ops)
 
 
 def checkout():  # noqa: E501
@@ -73,7 +87,10 @@ def checkout():  # noqa: E501
     response = InlineResponse200(common.Token)
     return response
 
-def operate(token, operations):  # noqa: E501
+def operate(operations):  # noqa: E501
+    # currently, header parameters will not be passed as arguments to controller
+    # methods in connexion
+    # http://connexion.readthedocs.io/en/latest/request.html#header-parameters
     """operate
 
     Operates the arm using a list of operations. # noqa: E501
@@ -85,8 +102,42 @@ def operate(token, operations):  # noqa: E501
 
     :rtype: InlineResponse2002
     """
-    #if connexion.request.is_json:
-    #    token = .from_dict(connexion.request.get_json())  # noqa: E501
-    if connexion.request.is_json:
-        operations = Operations.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    t_start = datetime.datetime.now()
+    if connexion.request.headers['token'] is None:
+        return 'Missing header value "token"', 400
+
+    token = None
+    try:
+        token = uuid.UUID(connexion.request.headers['token'])
+    except ValueError:
+        return 'Invalid token format', 400
+
+    if token != common.Token:
+        return common.Status, 403
+
+    count = 0
+    try:
+        if connexion.request.is_json:
+            operations = Operations.from_dict(connexion.request.get_json())  # noqa: E501
+            if len(operations) > 10:
+                return 'Too many operations. Reduce the number of operations to 10 or less', 413
+            for i, val in enumerate(operations):
+                count += 1
+                if val.type == 'moveTo':
+                    # do nothing
+                    print(val.type)
+                elif val.type == 'grab':
+                    # do nothing
+                    print(val.type)
+                elif val.type == 'release':
+                    # do nothing
+                    print(val.type)
+                else:
+                    raise ValueError(Operation)
+    except ValueError:
+        return 'Incorrect operation type. Only moveTo, grab and release are supported', 400
+
+    return InlineResponse2002(
+        count,
+        (datetime.datetime.now() - t_start).total_seconds(),
+        common.Status.position)

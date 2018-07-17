@@ -1,10 +1,9 @@
 # coding: utf-8
-
+# pylint: disable=R0902
+# pylint: disable=R0913
+"""Status model"""
 from __future__ import absolute_import
-from datetime import date, datetime  # noqa: F401
-
-from typing import List, Dict  # noqa: F401
-
+from datetime import datetime
 from server.models.base_model_ import Model
 from server.models.point import Point  # noqa: F401,E501
 from server import util
@@ -16,7 +15,9 @@ class Status(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, host: str=None, version: str=None, checked_out: bool=None, checked_out_since: datetime=None, movements_since_checkout: int=None, position: Point=None):  # noqa: E501
+    def __init__(self, host: str = None, version: str = None, checked_out: bool = None,
+                 checked_out_since: datetime = None, movements_since_checkout: int = None,
+                 position: Point = None):  # noqa: E501
         """Status - a model defined in Swagger
 
         :param host: The host of this Status.  # noqa: E501

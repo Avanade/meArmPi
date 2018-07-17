@@ -35,4 +35,4 @@ class Operations(Model):
         :return: The Operations of this Operations.  # noqa: E501
         :rtype: Operations
         """
-        return util.deserialize_model(dikt, cls)
+        return util.deserialize_list(dikt, Operation)

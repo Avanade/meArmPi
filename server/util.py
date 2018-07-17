@@ -19,6 +19,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+# pylint: disable=C0123
+# pylint: disable=R1710
+# pylint: disable=R0911
 """Utility methods for meArm REST Server"""
 import datetime
 import typing
@@ -45,9 +48,9 @@ def _deserialize(data, klass):
         return deserialize_datetime(data)
     elif type(klass) == typing.GenericMeta:
         if klass.__extra__ == list:
-            return _deserialize_list(data, klass.__args__[0])
+            return deserialize_list(data, klass.__args__[0])
         if klass.__extra__ == dict:
-            return _deserialize_dict(data, klass.__args__[1])
+            return deserialize_dict(data, klass.__args__[1])
     else:
         return deserialize_model(data, klass)
 
@@ -133,7 +136,7 @@ def deserialize_model(data, klass):
     return instance
 
 
-def _deserialize_list(data, boxed_type):
+def deserialize_list(data, boxed_type):
     """Deserializes a list and its elements.
 
     :param data: list to deserialize.
@@ -147,7 +150,7 @@ def _deserialize_list(data, boxed_type):
             for sub_data in data]
 
 
-def _deserialize_dict(data, boxed_type):
+def deserialize_dict(data, boxed_type):
     """Deserializes a dict and its elements.
 
     :param data: dict to deserialize.

@@ -20,20 +20,13 @@
 # THE SOFTWARE.
 #
 """Status controller for the RPI meArm REST interface."""
-import connexion
-import six
-
 from server.models.point import Point as PointModel  # noqa: E501
-from server.models.status import Status  # noqa: E501
-from server import util
 from server import common
-
 
 def get_arm():  # noqa: E501
     """get_arm
 
     Gets the current status of the meArm. # noqa: E501
-
 
     :rtype: Status
     """
@@ -42,11 +35,11 @@ def get_arm():  # noqa: E501
 def get_position():  # noqa: E501
     """get_position
 
-    Gets hte current position of the meArm # noqa: E501
+    Gets the current position of the meArm # noqa: E501
 
 
     :rtype: Point
     """
     if common.Status.position is None:
         return PointModel(0, 0, 0, 0, 0, 0).to_dict()
-    return common.Status.position.to_dict()
+    return common.Status.position().to_dict()

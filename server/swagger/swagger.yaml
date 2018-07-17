@@ -4,7 +4,7 @@ info:
   description: "A simple REST API to control a meArm robotic arm."
   version: "1.0.0"
   title: "Avanade meArm REST API"
-host: "192.168.1.253:8080"
+#host: "192.168.1.253:8080"
 basePath: "/Avanade.meArm/1.0.0"
 schemes:
 - "https"
@@ -121,23 +121,22 @@ paths:
           schema:
             type: "object"
             properties:
-              numberOfMovements:
+              numberOfMovements:                
                 type: "integer"
-                format: "int32"
+                format: "int64"
               duration:
                 type: "integer"
                 format: "int64"
               position:
                 $ref: "#/definitions/Point"
         403:
-          description: "Cannot operate due to incorrect token. Obtain a token using\
-            \ /arm/checkout."
+          description: "Cannot operate due to incorrect token. Obtain a token using /arm/checkout."
           schema:
             $ref: "#/definitions/Status"
         413:
           description: "Too many steps. Reduce the number of opertions to 10 or less"
           schema:
-            type: "object"
+            type: "string"
       x-swagger-router-controller: "server.controllers.operation_controller"
 definitions:
   Status:

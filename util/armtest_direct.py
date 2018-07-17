@@ -20,7 +20,6 @@
 # THE SOFTWARE.
 #
 # pylint: disable=C0103
-# pylint: disable=C0103
 """Simple test program for servo actuation"""
 import time
 import logging

@@ -77,8 +77,8 @@ def checkout():  # noqa: E501
 
     common.Token = uuid.uuid4()
     common.Status = Status(
-        common.Hostname,
-        common.Version,
+        common.HOSTNAME,
+        common.VERSION,
         True,
         datetime.datetime.now(),
         0,

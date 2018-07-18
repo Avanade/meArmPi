@@ -30,98 +30,155 @@ import math
 class Servo(object):
     """Represents a servo on the controller."""
 
-    def __init__(self, controller, channel:int, frequency:int=200, 
-                 min_pulse:float=0.7, max_pulse:float=2.1, neutral_pulse:float=1.4,
-                 min_angle:float=-90, max_angle:float=90, neutral_angle:float=0,
-                 resolution:int=4096):
-        """Initialize Servo
+    def __init__(self, controller, channel: int,
+                 min_pulse: float = 0.7, max_pulse: float = 2.1, neutral_pulse: float= 1.4,
+                 min_angle: float = -90, max_angle: float = 90, neutral_angle: float = 0):
+        """__init__
+        Initialize Servo
             Attributes:
-                controller:         the controller hosting the servo.
-                channel:            the channel on which the servo is operating.
-                frequency:          the frequency for the servo.
-                min_pulse:          the minimum signal pulse length.
-                max_pulse:          the maximum signal pulse length.
-                neutral_pulse:      the lenght of a pulse for the neutral position
-                min_angle:          the minimum servo angle achieved via min_pulse.
-                max_angle:          the maximum servo angle achieved via max_pulse.
-                neutral_angle:      the neutral angle achieved via neutral_pulse.
-                pulse_resolution:   the pulse resolution. This will generally be 4096, but can be
-                                    adjusted for each servo to achieve the desired width. Use
-                                    a scope on the controller to verify that the actual pulse
-                                    length corresponds to the requested pulse length and tweak this
-                                    parameter until it does.
+        :param controller: The controller hosting the servo.
+        :type controller: PCA9685
+
+        :param channel: The channel on which the servo is operating.
+        :type channel: int
+
+        :param min_pulse: The minimum signal pulse length.
+        :type min_pulse: float
+
+        :param max_pulse: The maximum signal pulse length.
+        :type max_pulse: float
+
+        :param neutral_pulse: The lenght of a pulse for the neutral position
+        :type neutral_pulse: float
+
+        :param min_angle: The minimum servo angle achieved via min_pulse.
+        :type min_angle: float
+
+        :param max_angle: The maximum servo angle achieved via max_pulse.
+        :type max_angle: float
+
+        :param neutral_angle: The neutral angle achieved via neutral_pulse.
+        :type neutral_angle: float
         """
-        self.controller = controller
-        self.channel = channel
-        self.frequency = frequency
-        self.min_pulse = min_pulse
-        self.max_pulse = max_pulse
-        self.neutral_pulse = neutral_pulse
-        self.min_angle = min_angle
-        self.max_angle = max_angle
-        self.neutral_angle = neutral_angle
-        self.pulse_resolution = resolution
-        self.ticks = 0
-        self.angle = 0
-        self.pulse = 0
-        self.logger = logging.getLogger(__name__)
+        self._controller = controller
+        self._channel = channel
+        self._min_pulse = min_pulse
+        self._max_pulse = max_pulse
+        self._neutral_pulse = neutral_pulse
+        self._min_angle = min_angle
+        self._max_angle = max_angle
+        self._neutral_angle = neutral_angle
+        self._ticks = 0
+        self._angle = 0
+        self._pulse = 0
+        self._logger = logging.getLogger(__name__)
 
         #caluclate boundary ticks for servo
-        self.servo_min = self.calculate_servo_ticks_from_pulse(self.min_pulse)
-        self.servo_max = self.calculate_servo_ticks_from_pulse(self.max_pulse)
-        self.servo_neutral = self.calculate_servo_ticks_from_pulse(self.neutral_pulse)
+        self._servo_min = self._calculate_servo_ticks_from_pulse(self._min_pulse)
+        self._servo_max = self._calculate_servo_ticks_from_pulse(self._max_pulse)
+        self._servo_neutral = self._calculate_servo_ticks_from_pulse(self._neutral_pulse)
         
         #initialize servo
-        self.set_angle(self.neutral_angle)
+        self.set_angle(self._neutral_angle)
         
-    def calculate_servo_ticks_from_pulse(self, pulse:float) -> int:
-        """Calculate the number of on ticks to achieve a certain pulse."""
+    @property
+    def angle(self) -> float:
+        """Gets the current angle of the servo.
 
-        if str(pulse) < str(self.min_pulse) or str(pulse) > str(self.max_pulse):
+        :return: The current servo angle.
+        :rtype: float
+        """
+        return self._ticks
+
+    @property
+    def pulse(self) -> float:
+        """Gets the current pulse lenght of the servo.
+
+        :return: The current servo pulse lenght.
+        :rtype: float
+        """
+        return self._pulse
+
+    @property
+    def ticks(self) -> int:
+        """Gets the current number of ticks on the servo.
+
+        :return: The current servo ticks.
+        :rtype: int
+        """
+        return self._ticks
+
+
+    def _calculate_servo_ticks_from_pulse(self, pulse: float) -> int:
+        """calculate_servo_ticks_from_pulse
+        Calculate the number of on ticks to achieve a certain pulse.
+        
+        :param pulse: The length of the pulse for which to calculate the ticks
+        :type pulse: float
+
+        :return: The number of ticks to achieve the pulse
+        :rtype: int
+        """
+
+        if str(pulse) < str(self._min_pulse) or str(pulse) > str(self._max_pulse):
             raise Exception('Pulse %f out of range. Must be between %f and %f' %
-                            (pulse, self.min_pulse, self.max_pulse))
+                            (pulse, self._min_pulse, self._max_pulse))
 
-        pulse_length = 1000000.0                        # 1,000,000 us per second
-        pulse_length /= float(self.frequency)           # signal frequency
-        pulse_length /= float(self.pulse_resolution)    # 12 bits of resolution
+        pulse_length = 1000000.0                                # 1,000,000 us per second
+        pulse_length /= float(self._controller.frequency())     # signal frequency
+        pulse_length /= float(self._controller.resolution())    # pusle resolution
         pulse *= 1000.0
         pulse //= pulse_length
         return int(pulse)
 
-    def calculate_servo_ticks_from_angle(self, angle:float) -> (float, int):
-        """Calculate the number of on ticks to achieve a certain servo angle."""
+    def _calculate_servo_ticks_from_angle(self, angle: float) -> (float, int):
+        """_calculate_servo_ticks_from_angle
+        Calculate the number of on ticks to achieve a certain servo angle.
+        
+        :param angle: The angle for which to calculate the ticks
+        :type angle: float
 
-        if angle < self.min_angle or angle > self.max_angle:
+        :return: The number of ticks to achieve the angle and the corresponding pulse
+        :rtype: (float, int)        
+        """
+
+        if angle < self._min_angle or angle > self._max_angle:
             raise Exception('Angle %d out of range. Must be between %d and %d' %
-                            (angle, self.min_angle, self.max_angle))
+                            (angle, self._min_angle, self._max_angle))
 
-        pulse = self.neutral_pulse
-        if angle > self.neutral_angle:
-            pulse += ((angle - self.neutral_angle) * (self.max_pulse - self.neutral_pulse)) / \
-                (self.max_angle - self.neutral_angle)
-        elif angle < self.neutral_angle:
-            pulse -= ((angle + self.neutral_angle) * (self.neutral_pulse - self.min_pulse)) / \
-                (self.min_angle + self.neutral_angle)
-        self.logger.info('Angle %d -> pulse %f', angle, pulse)
-        return self.calculate_servo_ticks_from_pulse(pulse), pulse
-
-    def get_state(self) -> (float, float, float):
-        """Return the current servo state."""
-        return self.ticks, self.pulse, self.angle
+        pulse = self._neutral_pulse
+        if angle > self._neutral_angle:
+            pulse += ((angle - self._neutral_angle) * (self._max_pulse - self._neutral_pulse)) / \
+                (self._max_angle - self._neutral_angle)
+        elif angle < self._neutral_angle:
+            pulse -= ((angle + self._neutral_angle) * (self._neutral_pulse - self._min_pulse)) / \
+                (self._min_angle + self._neutral_angle)
+        self._logger.info('Angle %d -> pulse %f', angle, pulse)
+        return self._calculate_servo_ticks_from_pulse(pulse), pulse
 
     def set_pulse(self, pulse: float):
-        """Sets the servo to a certain pulse width."""
-        ticks = self.calculate_servo_ticks_from_pulse(pulse)
-        self.logger.info('Channel %d: %f pulse -> %d ticks', self.channel, pulse, ticks)
-        self.controller.set_pwm(self.channel, 0, ticks)
-        self.pulse = pulse
-        self.ticks = ticks
+        """set_pulse
+        Sets the servo to a certain pulse width.
+        
+        :param pulse: The desired pulse lenght
+        :type pulse: float
+        """
+        ticks = self._calculate_servo_ticks_from_pulse(pulse)
+        self._logger.info('Channel %d: %f pulse -> %d ticks', self._channel, pulse, ticks)
+        self._controller.set_pwm(self._channel, 0, ticks)
+        self._pulse = pulse
+        self._ticks = ticks
 
-    def set_angle(self, angle:float):
-        """Sets the servo to a certain angle."""
-        ticks, pulse = self.calculate_servo_ticks_from_angle(angle)
-        self.logger.info('Channel %d: %f angle -> %d ticks', self.channel, angle, ticks)
-        self.controller.set_pwm(self.channel, 0, ticks)
-        self.angle = angle
-        self.ticks = ticks
-        self.pulse = pulse
+    def set_angle(self, angle: float):
+        """set_angle
+        Sets the servo to a certain angle.
+        
+        :param angle: The desired angle to achieve. 
+        :type angle: float
+        """
+        ticks, pulse = self._calculate_servo_ticks_from_angle(angle)
+        self._logger.info('Channel %d: %f angle -> %d ticks', self._channel, angle, ticks)
+        self._controller.set_pwm(self._channel, 0, ticks)
+        self._angle = angle
+        self._ticks = ticks
+        self._pulse = pulse

@@ -31,7 +31,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 resolution = 4096
-frequency = 26500000
+frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
 servo_frequency = 50
 chan = 1
 

@@ -127,6 +127,34 @@ class PCA9685(object):
         time.sleep(0.005)  # wait for oscillator
         self.set_pwm_freq(self._servo_frequency)
 
+    @property
+    def frequency(self) -> int:
+        """Gets the servo frequency configured for the board.
+
+        :return: The servo pulse frequency.
+        :rtype: Point
+        """
+        return self._servo_frequency
+
+    @property
+    def resolution(self) -> int:
+        """Gets the pulse resolution for the board.
+
+        :return: The servo pulse resolution.
+        :rtype: Point
+        """
+        return self._resolution
+
+    @property
+    def servos(self) -> {}:
+        """Gets the collection of servos on the board.
+
+        :return: a list of servos registerd on the board.
+        :rtype: Collection of Servo
+        """
+        return self._resolution
+
+
     def add_servo(self, channel: int,
                   min_pulse: float = 0.7, max_pulse: float = 2.1, neutral_pulse: float = 1.4,
                   min_angle: float = -90.0, max_angle: float = 90.0, neutral_angle: float = 0.0):
@@ -157,19 +185,18 @@ class PCA9685(object):
         if channel < 0 or channel > 15:
             raise ValueError('Channel must be between 0 and 15')
 
-        self._servos[channel] = Servo(self, channel, self._servo_frequency,
+        self._servos[channel] = Servo(self, channel,
                                       min_pulse, max_pulse, neutral_pulse,
-                                      min_angle, max_angle, neutral_angle,
-                                      self._resolution)
+                                      min_angle, max_angle, neutral_angle)
 
-    def get_servo_state(self, channel: int) -> (float, float, float):
+    def get_servo_state(self, channel: int) -> (int, float, float):
         """get_servo_state
         Gets the servo state on channel (ticks, pulse and angle).
 
         :param: channel: The channel for which to obtain the servo state. Between 0 and 15.
         :type channel: integer
 
-        :rtype (float, float, float) - A tuple containing ticks, pulse and angle, in that order.
+        :rtype (int, float, float) - A tuple containing ticks, pulse and angle, in that order.
 
         """
         if channel < 0 or channel > 15:
@@ -179,7 +206,7 @@ class PCA9685(object):
         if servo is None:
             raise Exception('There is no servo registered on channel %d' % channel)
         else:
-            return servo.get_state()
+            return servo.ticks(), servo.pulse(), servo.angle()
 
     def set_servo_pulse(self, channel: int, pulse: float):
         """set_servo_pulse

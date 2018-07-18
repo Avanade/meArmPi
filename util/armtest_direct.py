@@ -30,7 +30,7 @@ import controller
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-frequency = 24060150
+frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
 resolution = 4096
 servo_frequency = 50
 

@@ -36,7 +36,7 @@ servo_frequency = 50
 
 # Initialise the PCA9685 using the default address (0x40).
 pwm = controller.PCA9685(
-    address=0x40, 
+    0x40, 
     None,
     frequency,
     resolution,

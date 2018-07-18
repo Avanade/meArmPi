@@ -81,10 +81,10 @@ class Servo(object):
             raise Exception('Pulse %f out of range. Must be between %f and %f' %
                             (pulse, self.min_pulse, self.max_pulse))
 
-        pulse_length = 1000000                  # 1,000,000 us per second
-        pulse_length /= self.frequency          # signal frequency
-        pulse_length /= self.pulse_resolution   # 12 bits of resolution
-        pulse *= 1000
+        pulse_length = 1000000.0                        # 1,000,000 us per second
+        pulse_length /= float(self.frequency)           # signal frequency
+        pulse_length /= float(self.pulse_resolution)    # 12 bits of resolution
+        pulse *= 1000.0
         pulse //= pulse_length
         return int(pulse)
 

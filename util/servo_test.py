@@ -30,14 +30,16 @@ import controller
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-frequency = 24060150
+#frequency = 24060150
+#resolution = 4096
+frequency = 25000000
 resolution = 4096
 servo_frequency = 50
 chan = 1
 
 # Initialise the PCA9685 using the default address (0x40).
 pwm = controller.PCA9685(
-    address=0x40, 
+    0x40,
     None,
     frequency,
     resolution,
@@ -48,12 +50,12 @@ pwm = controller.PCA9685(
 
 # use to tune the servo
 # for Emax ES08MAII
-# servo_min_pulse = 0.6
-# servo_max_pulse = 2.4
-# servo_neutral_pulse = 1.5
-# servo_min_angle = -85.0
-# servo_max_angle = 85.0
-# servo_neutral_angle = -0.0
+servo_min_pulse = 0.6
+servo_max_pulse = 2.4
+servo_neutral_pulse = 1.5
+servo_min_angle = -90.0
+servo_max_angle = 90.0
+servo_neutral_angle = -0.0
 
 # for Miuzei SG90
 servo_min_pulse = 0.6
@@ -98,21 +100,21 @@ while True:
     inc = 0.5
 
     pwm.set_servo_pulse(chan, servo_neutral_pulse)
-    time.sleep(5)
-    pwm.set_servo_pulse(chan, servo_min_pulse)
-    time.sleep(5)
-    pwm.set_servo_pulse(chan, servo_max_pulse)
-    time.sleep(5)
+    time.sleep(20)
+    #pwm.set_servo_pulse(chan, servo_min_pulse)
+    #time.sleep(5)
+    #pwm.set_servo_pulse(chan, servo_max_pulse)
+    #time.sleep(5)
 
-    while angle < servo_max_angle - 0.5:
-        pwm.set_servo_angle(chan, angle)
-        angle += inc
+    #while angle < servo_max_angle - 0.5:
+    #    pwm.set_servo_angle(chan, angle)
+    #    angle += inc
 
-    time.sleep(0.5)
+    #time.sleep(0.5)
 
-    while angle > servo_min_angle + 0.5:
-        pwm.set_servo_angle(chan, angle)
-        angle -= inc
+    #while angle > servo_min_angle + 0.5:
+    #    pwm.set_servo_angle(chan, angle)
+    #    angle -= inc
 
-    time.sleep(0.5)
+    #time.sleep(0.5)
     

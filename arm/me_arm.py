@@ -39,7 +39,7 @@ class me_arm(object):
     servo_max_angle = 85.0          # default servo max angle (tuned for SG90S from Mizui)
     servo_neutral_angle = -0.0      # default servo neutral angle (tuned for SG90S from Mizui)
     pulse_resolution = 4096         # tuned to generate exact pulse width accounting for calculation rounding error
-    board_frequency = 24060150      # PWM board frequency.
+    board_frequency = 25000000      # PWM board frequency.
 
     # arm neutrals and boundaries
     elbow_neutral_angle = 0.0       # servo angle for elbow neutral position
@@ -61,14 +61,14 @@ class me_arm(object):
     Instance = None
 
     def __init__(self, 
-            hip_channel:int=15,
-            elbow_channel:int=12,
-            shoulder_channel:int=13,
-            gripper_channel:int=14,
-            servo_frequency:int=meArm.servo_frequency,
-            board_frequency:int=meArm.board_frequency,
-            resolution:int=meArm.pusle_resolution
-            initialize:bool=True):
+            hip_channel: int = 15,
+            elbow_channel: int = 12,
+            shoulder_channel: int = 13,
+            gripper_channel: int = 14,
+            servo_frequency: int = None,
+            board_frequency: int = None,
+            resolution: int = None,
+            initialize: bool = True):
         """__init__
         Default initialization of arm
         
@@ -97,9 +97,9 @@ class me_arm(object):
         :type initialize: bool      
 
         """
-        if hip_channel < 0 or hip_channel > 15 or
-           elbow_channel < 0 or elbow_channel > 15 or
-           shoulder_channel < 0 or shoulder_channel > 15 or
+        if hip_channel < 0 or hip_channel > 15 or \
+           elbow_channel < 0 or elbow_channel > 15 or \
+           shoulder_channel < 0 or shoulder_channel > 15 or \
            gripper_channel < 0 or gripper_channel > 15:
             raise ValueError('Servo channel values must be between 0 and 15')
 
@@ -109,6 +109,9 @@ class me_arm(object):
             logger.error(msg)
             raise Exception(msg)
 
+        if servo_frequency is None: servo_frequency = me_arm.servo_frequency
+        if board_frequency is None: board_frequency = me_arm.board_frequency
+        if resolution is None: resolution = me_arm.pulse_resolution
         self.kinematics = kinematics.Kinematics()
         self.logger = logging.getLogger(__name__)
         self.hip_channel = hip_channel
@@ -119,7 +122,7 @@ class me_arm(object):
 
         # Initialise the PCA9685 using the default address (0x40).
         self.pwm = controller.PCA9685(
-            address=0x40, 
+            0x40, 
             None,
             board_frequency,
             resolution,
@@ -142,7 +145,7 @@ class me_arm(object):
         self.hip_min_angle = me_arm.servo_min_angle
         self.hip_max_angle = me_arm.servo_max_angle
         self.hip_neutral_angle = me_arm.servo_neutral_angle
-        self.hip_resolution = me_arm.servo_resolution
+        self.hip_resolution = me_arm.pulse_resolution
 
         # defaults for shoulder servo
         self.shoulder_min_pulse = me_arm.servo_min_pulse
@@ -151,7 +154,7 @@ class me_arm(object):
         self.shoulder_min_angle = me_arm.servo_min_angle
         self.shoulder_max_angle = me_arm.servo_max_angle
         self.shoulder_neutral_angle = me_arm.servo_neutral_angle
-        self.shoulder_resolution = me_arm.servo_resolution
+        self.shoulder_resolution = me_arm.pulse_resolution
 
         # defaults for elbow servo
         self.elbow_min_pulse = me_arm.servo_min_pulse
@@ -160,7 +163,7 @@ class me_arm(object):
         self.elbow_min_angle = me_arm.servo_min_angle
         self.elbow_max_angle = me_arm.servo_max_angle
         self.elbow_neutral_angle = me_arm.servo_neutral_angle
-        self.elbow_resolution = me_arm.servo_resolution
+        self.elbow_resolution = me_arm.pulse_resolution
 
         # defaults for gripper servo
         self.gripper_min_pulse = me_arm.servo_min_pulse
@@ -169,7 +172,7 @@ class me_arm(object):
         self.gripper_min_angle = me_arm.servo_min_angle
         self.gripper_max_angle = me_arm.servo_max_angle
         self.gripper_neutral_angle = me_arm.servo_neutral_angle
-        self.gripper_resolution = me_arm.servo_resolution
+        self.gripper_resolution = me_arm.pulse_resolution
 
         #current angles
         self.elbow_angle = me_arm.elbow_neutral_angle

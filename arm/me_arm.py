@@ -38,7 +38,8 @@ class me_arm(object):
     servo_min_angle = -85.0         # default servo min angle (tuned for SG90S from Mizui)
     servo_max_angle = 85.0          # default servo max angle (tuned for SG90S from Mizui)
     servo_neutral_angle = -0.0      # default servo neutral angle (tuned for SG90S from Mizui)
-    servo_resolution = 4256         # tuned to generate exact pulse width accounting for calculation rounding error
+    pulse_resolution = 4096         # tuned to generate exact pulse width accounting for calculation rounding error
+    board_frequency = 24060150      # PWM board frequency.
 
     # arm neutrals and boundaries
     elbow_neutral_angle = 0.0       # servo angle for elbow neutral position
@@ -64,8 +65,44 @@ class me_arm(object):
             elbow_channel:int=12,
             shoulder_channel:int=13,
             gripper_channel:int=14,
+            servo_frequency:int=meArm.servo_frequency,
+            board_frequency:int=meArm.board_frequency,
+            resolution:int=meArm.pusle_resolution
             initialize:bool=True):
-        """Default initialization of arm"""
+        """__init__
+        Default initialization of arm
+        
+        :param hip_channel: The channel for the hip servo.
+        :type hip_channel: int
+
+        :param elbow_channel: The channel for the elbow servo.
+        :type elbow_channel: int
+
+        :param shoulder_channel: The channel for the shoulder servo.
+        :type shoulder_channel: int
+
+        :param gripper_channel: The channel for the gripper servo.
+        :type gripper_channel: int
+
+        :param servo_frequency: The servo frequency.
+        :type servo_frequency: int
+
+        :param board_frequency: The frequency on which the PWM board operates. This needs to be tuned.
+        :type board_frequency: int
+
+        :param resolution: The pulse resolution. This is generally 12bit (4096).
+        :type resolution: int
+
+        :param initialize: True to immidiately run the servo initialization, false to adjuist values after construction.
+        :type initialize: bool      
+
+        """
+        if hip_channel < 0 or hip_channel > 15 or
+           elbow_channel < 0 or elbow_channel > 15 or
+           shoulder_channel < 0 or shoulder_channel > 15 or
+           gripper_channel < 0 or gripper_channel > 15:
+            raise ValueError('Servo channel values must be between 0 and 15')
+
         if me_arm.Instance is not None:
             msg = "meArm Instance already exists. Cannot create a new instance. Release the existing \
                 instance by calling me_arm.Instance.shutdown()"
@@ -81,13 +118,21 @@ class me_arm(object):
         self.__setup_defaults()
 
         # Initialise the PCA9685 using the default address (0x40).
-        self.pwm = controller.PCA9685(address=0x40)  
-            # Alternatively specify a different address and/or bus: controller.PCA9685(address=0x40, busnum=2)
+        self.pwm = controller.PCA9685(
+            address=0x40, 
+            None,
+            board_frequency,
+            resolution,
+            servo_frequency)
+
+        # Alternatively specify a different address and/or bus: controller.PCA9685(address=0x40, busnum=2)
         if initialize: self.initialize()
         me_arm.Instance = self
     
     def __setup_defaults(self):
-        """Setup defaults for the servos based on static defaults."""
+        """__setup_defaults
+        Setup defaults for the servos based on static defaults.
+        """
         self.frequency = me_arm.servo_frequency
 
         # defaults for hip servo
@@ -136,6 +181,7 @@ class me_arm(object):
     @classmethod
     def createWithServoParameters(cls,
             hip_channel:int, elbow_channel:int, shoulder_channel:int, gripper_channel:int):
+    
         if me_arm.Instance is not None: return me_arm.Instance
 
         obj = cls(hip_channel, elbow_channel, shoulder_channel, gripper_channel, False)
@@ -146,12 +192,20 @@ class me_arm(object):
         return obj
 
     def close(self):
-        """Close the gripper, grabbing onto anything that might be there"""
+        """close
+        Close the gripper, grabbing onto anything that might be there
+        """
         self.pwm.set_servo_angle(self.gripper_channel, me_arm.gripper_closed_angle)
         time.sleep(0.3)
 
     def is_reachable(self, point:kinematics.Point) -> (bool, float, float, float):
-        """Returns True if the point is (theoretically) reachable by the gripper"""
+        """is_reachable
+
+        Returns True if the point is (theoretically) reachable by the gripper
+        
+        :param
+        
+        """
         hip, shoulder, elbow = self.kinematics.fromCartesian(point.x, point.y, point.z)
         isReachable = True
         if hip < me_arm.hip_min_angle or hip > me_arm.hip_max_angle: isReachable = False
@@ -201,22 +255,18 @@ class me_arm(object):
 
     def initialize(self):
         """Registers the servo."""
-        self.pwm.add_servo(self.hip_channel, self.frequency, 
+        self.pwm.add_servo(self.hip_channel, 
             self.hip_min_pulse, self.hip_max_pulse, self.hip_neutral_pulse,
-            self.hip_min_angle, self.hip_max_angle, self.hip_neutral_angle,
-            self.hip_resolution)
-        self.pwm.add_servo(self.shoulder_channel, self.frequency, 
+            self.hip_min_angle, self.hip_max_angle, self.hip_neutral_angle)
+        self.pwm.add_servo(self.shoulder_channel, 
             self.shoulder_min_pulse, self.shoulder_max_pulse, self.shoulder_neutral_pulse,
-            self.shoulder_min_angle, self.shoulder_max_angle, self.shoulder_neutral_angle,
-            self.shoulder_resolution)
-        self.pwm.add_servo(self.elbow_channel, self.frequency, 
+            self.shoulder_min_angle, self.shoulder_max_angle, self.shoulder_neutral_angle)
+        self.pwm.add_servo(self.elbow_channel, 
             self.elbow_min_pulse, self.elbow_max_pulse, self.elbow_neutral_pulse,
-            self.elbow_min_angle, self.elbow_max_angle, self.elbow_neutral_angle,
-            self.elbow_resolution)
-        self.pwm.add_servo(self.gripper_channel, self.frequency, 
+            self.elbow_min_angle, self.elbow_max_angle, self.elbow_neutral_angle)
+        self.pwm.add_servo(self.gripper_channel, 
             self.gripper_min_pulse, self.gripper_max_pulse, self.gripper_neutral_pulse,
-            self.gripper_min_angle, self.gripper_max_angle, self.gripper_neutral_angle,
-            self.gripper_resolution)
+            self.gripper_min_angle, self.gripper_max_angle, self.gripper_neutral_angle)
 
     def open(self):
         """Open the gripper, dropping whatever is being carried"""

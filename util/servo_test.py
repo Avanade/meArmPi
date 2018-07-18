@@ -30,14 +30,21 @@ import controller
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+frequency = 24060150
+resolution = 4096
+servo_frequency = 50
+chan = 1
+
 # Initialise the PCA9685 using the default address (0x40).
-pwm = controller.PCA9685(address=0x40)
+pwm = controller.PCA9685(
+    address=0x40, 
+    None,
+    frequency,
+    resolution,
+    servo_frequency)
 
 # Alternatively specify a different address and/or bus:
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
-
-servo_frequency = 50
-chan = 1
 
 # use to tune the servo
 # for Emax ES08MAII
@@ -77,14 +84,12 @@ atexit.register(shutdown)
 #add the servo
 pwm.add_servo(
     chan,
-    servo_frequency,
     servo_min_pulse,
     servo_max_pulse,
     servo_neutral_pulse,
     servo_min_angle,
     servo_max_angle,
-    servo_neutral_angle,
-    4256)
+    servo_neutral_angle)
 
 logger.info('Moving servo on channel %d, press Ctrl-C to quit...', chan)
 while True:

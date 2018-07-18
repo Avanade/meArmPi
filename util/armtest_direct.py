@@ -30,13 +30,22 @@ import controller
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+frequency = 24060150
+resolution = 4096
+servo_frequency = 50
+
 # Initialise the PCA9685 using the default address (0x40).
-pwm = controller.PCA9685(address=0x40)
+pwm = controller.PCA9685(
+    address=0x40, 
+    None,
+    frequency,
+    resolution,
+    servo_frequency)
 
 # Alternatively specify a different address and/or bus:
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
 
-servo_frequency = 50
+
 servo_min_pulse = 0.6
 servo_max_pulse = 2.3
 servo_neutral_pulse = 1.4
@@ -48,14 +57,14 @@ elbow_channel = 12
 shoulder_channel = 13
 gripper_channel = 14
 
-pwm.add_servo(hip_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
-pwm.add_servo(gripper_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
-pwm.add_servo(shoulder_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
-pwm.add_servo(elbow_channel, servo_frequency, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle, 4256)
+pwm.add_servo(hip_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle)
+pwm.add_servo(gripper_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle)
+pwm.add_servo(shoulder_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle)
+pwm.add_servo(elbow_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
+              servo_min_angle, servo_max_angle, servo_neutral_angle)
 
 def shutdown():
     """Resets the arm at neutral position and then resets the controller"""

@@ -160,7 +160,7 @@ class PCA9685(object):
         self._servos[channel] = Servo(self, channel, self._servo_frequency,
                                       min_pulse, max_pulse, neutral_pulse,
                                       min_angle, max_angle, neutral_angle,
-                                      4256)
+                                      self._resolution)
 
     def get_servo_state(self, channel: int) -> (float, float, float):
         """get_servo_state

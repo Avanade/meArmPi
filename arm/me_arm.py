@@ -209,14 +209,14 @@ class me_arm(object):
         """delete_all
         Deletes all meArms currently registered
         """
-        arm: me_arm = None
+        arm: cls = None
         id: str = ""
         for id, arm in me_arm._instances.items():
             arm.delete()
             del me_arm._instances[id]
 
     @classmethod
-    def get(cls, id: str) -> me_arm:
+    def get(cls, id: str):
         """get
         Gets the meArm with specified id. 
 

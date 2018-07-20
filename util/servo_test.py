@@ -31,7 +31,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 resolution = 4096
-frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
+frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board.
 servo_frequency = 50
 chan = 1
 
@@ -56,12 +56,12 @@ servo_max_angle = 90.0
 servo_neutral_angle = -0.0
 
 # for Miuzei SG90
-# servo_min_pulse = 0.6
-# servo_max_pulse = 2.3
-# servo_neutral_pulse = 1.4
-# servo_min_angle = -85.0
-# servo_max_angle = 85.0
-# servo_neutral_angle = -0.0
+servo_min_pulse = 0.6
+servo_max_pulse = 2.3
+servo_neutral_pulse = 1.4
+servo_min_angle = -85.0
+servo_max_angle = 85.0
+servo_neutral_angle = -0.0
 
 def shutdown():
     """
@@ -105,12 +105,14 @@ while True:
 
     while angle < servo_max_angle - 0.5:
         pwm.set_servo_angle(chan, angle)
+        time.sleep(0.005)
         angle += inc
 
     time.sleep(0.5)
 
     while angle > servo_min_angle + 0.5:
         pwm.set_servo_angle(chan, angle)
+        time.sleep(0.005)
         angle -= inc
 
     time.sleep(0.5)

@@ -25,6 +25,23 @@ import time
 import logging
 import atexit
 from arm import me_arm
+from controller import PCA9685
+
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
+print('Press Ctrl-C to quit...')
+
+resolution = 4096
+frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
+servo_frequency = 50
+
+# Initialise the PCA9685 using the default address (0x40).
+controller = PCA9685(
+    0x40,
+    None,
+    frequency,
+    resolution,
+    servo_frequency)
 
 def shutdown():
     """shutdown
@@ -37,22 +54,6 @@ def shutdown():
 
 # restier shutdown steps
 atexit.register(shutdown)
-
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger(__name__)
-print('Press Ctrl-C to quit...')
-
-resolution = 4096
-frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
-servo_frequency = 50
-
-# Initialise the PCA9685 using the default address (0x40).
-controller = controller.PCA9685(
-    0x40,
-    None,
-    frequency,
-    resolution,
-    servo_frequency)
 
 my_arm = me_arm.createWithServoParameters(controller, 15, 12, 13, 14)
 my_arm.close()

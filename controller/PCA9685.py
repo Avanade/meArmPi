@@ -79,8 +79,9 @@ def software_reset(i2c=None, **kwargs):
 class PCA9685(object):
     """PCA9685 PWM LED/servo controller."""
 
-    def __init__(self, address=PCA9685_ADDRESS, i2c=None, frequency=25000000, resolution=4096,
-                 servo_frequency=50, **kwargs):
+    def __init__(self, address: int = PCA9685_ADDRESS, i2c = None, 
+                 frequency: int = 26500000, resolution: int = 4096,
+                 servo_frequency: int = 50, **kwargs):
         """__init__
 
         Initialize the PCA9685.
@@ -128,11 +129,20 @@ class PCA9685(object):
         self.set_pwm_freq(self._servo_frequency)
 
     @property
+    def address(self) -> int:
+        """Gets the board address.
+
+        :return: The board address.
+        :rtype: int
+        """
+        return self._address
+
+    @property
     def frequency(self) -> int:
         """Gets the servo frequency configured for the board.
 
         :return: The servo pulse frequency.
-        :rtype: Point
+        :rtype: int
         """
         return self._servo_frequency
 
@@ -141,7 +151,7 @@ class PCA9685(object):
         """Gets the pulse resolution for the board.
 
         :return: The servo pulse resolution.
-        :rtype: Point
+        :rtype: int
         """
         return self._resolution
 
@@ -185,28 +195,32 @@ class PCA9685(object):
         if channel < 0 or channel > 15:
             raise ValueError('Channel must be between 0 and 15')
 
+        if channel in self._servos:
+            raise KeyError('There is already a servo on this channel: %d', channel)
+
+
         self._servos[channel] = Servo(self, channel,
                                       min_pulse, max_pulse, neutral_pulse,
                                       min_angle, max_angle, neutral_angle)
 
-    def get_servo_state(self, channel: int) -> (int, float, float):
-        """get_servo_state
-        Gets the servo state on channel (ticks, pulse and angle).
+    def get_servo(self, channel: int) -> Servo:
+        """get_servo
+        Gets the servo on channel.
 
         :param: channel: The channel for which to obtain the servo state. Between 0 and 15.
         :type channel: integer
 
-        :rtype (int, float, float) - A tuple containing ticks, pulse and angle, in that order.
+        :rtype (Servo) -The servo on that channel.
 
         """
         if channel < 0 or channel > 15:
             raise ValueError('Channel must be between 0 and 15')
 
+        if channel not in self._servos:
+            raise KeyError('There is no servo registered on channel %d' % channel)
+        
         servo = self._servos[channel]
-        if servo is None:
-            raise Exception('There is no servo registered on channel %d' % channel)
-        else:
-            return servo.ticks(), servo.pulse(), servo.angle()
+        return servo
 
     def set_servo_pulse(self, channel: int, pulse: float):
         """set_servo_pulse
@@ -222,11 +236,11 @@ class PCA9685(object):
         if channel < 0 or channel > 15:
             raise ValueError('Channel must be between 0 and 15')
 
+        if channel not in self._servos:
+            raise KeyError('There is no servo registered on channel %d' % channel)
+        
         servo = self._servos[channel]
-        if servo is None:
-            raise Exception('There is no servo registered on channel %d' % channel)
-        else:
-            servo.set_pulse(pulse)
+        servo.set_pulse(pulse)
 
     def set_servo_angle(self, channel: int, angle: float):
         """set_servo_angle
@@ -242,11 +256,11 @@ class PCA9685(object):
         if channel < 0 or channel > 15:
             raise ValueError('Channel must be between 0 and 15')
 
+        if channel not in self._servos:
+            raise KeyError('There is no servo registered on channel %d' % channel)
+        
         servo = self._servos[channel]
-        if servo is None:
-            raise Exception('There is no servo registered on channel %d' % channel)
-        else:
-            servo.set_angle(angle)
+        servo.set_angle(angle)
 
     def set_pwm_freq(self, servo_frequency: int):
         """set_pwm_freq

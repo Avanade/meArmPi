@@ -23,13 +23,38 @@
 """Simple test routine for meArm on RPI"""
 import time
 import logging
-import arm
+import atexit
+from arm import me_arm
+
+def shutdown():
+    """shutdown
+        Deletes the arm and then resets the controller
+    """
+    logger.info('Resetting servo and controller...')
+    logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
+    me_arm.delete_all()
+    controller.software_reset()
+
+# restier shutdown steps
+atexit.register(shutdown)
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 print('Press Ctrl-C to quit...')
 
-my_arm = arm.me_arm()
+resolution = 4096
+frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
+servo_frequency = 50
+
+# Initialise the PCA9685 using the default address (0x40).
+controller = controller.PCA9685(
+    0x40,
+    None,
+    frequency,
+    resolution,
+    servo_frequency)
+
+my_arm = me_arm.createWithServoParameters(controller, 15, 12, 13, 14)
 my_arm.close()
 time.sleep(2)
 my_arm.open()

@@ -91,6 +91,15 @@ class Servo(object):
         return self._ticks
 
     @property
+    def channel(self) -> int:
+        """Gets the channel for the servo.
+
+        :return: The servo channel.
+        :rtype: int
+        """
+        return self._channel
+
+    @property
     def pulse(self) -> float:
         """Gets the current pulse lenght of the servo.
 

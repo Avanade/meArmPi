@@ -22,9 +22,10 @@
 # pylint: disable=C0103
 """Module defifining a meArm property class"""
 import json
-from controller import ServoAttributes, ES08MAIIAttributes, CustomServoAttributes, MiuzeiSG90Attributes
+from jsonschema import validate, RefResolver, Draft4Validator
+from controller import ServoAttributes, ES08MAIIAttributes, CustomServoAttributes, MiuzeiSG90Attributes, ServoSchema
 
-servo_schema = {
+arm_servo_schema = {
     "$id": "http://theRealThor.com/meArm.arm-servo.schema.json",
     "title": "Servo Attributes",
     "description": "Describes additional meArm servo attributes.",
@@ -44,6 +45,11 @@ servo_schema = {
         },
     },
     "required": [ "channel", "type", "arm-angles"]
+}
+
+schema_store = {
+    "http://theRealThor.com/meArm.servo-attributes.schema.json": ServoSchema,
+    "http://theRealThor.com/meArm.arm-servo.schema.json": arm_servo_schema
 }
 
 class me_armServo(object):
@@ -73,6 +79,57 @@ class me_armServo(object):
         self._neutral = neutral
         self._max = max
         self._min = min
+
+    @classmethod
+    def from_json_file(cls, json_file:str):
+        """from_json_file
+        Generates me_armServo from json file
+        :param json_file: name of the file containing the json data. Must adhere to arm.ServoSchema
+        :type json_file: str
+        """
+        with open(json_file) as file:
+            data = json.load(file)
+            resolver = RefResolver('', arm_servo_schema, schema_store)
+            validator = Draft4Validator(arm_servo_schema, None, resolver)
+            validator.validate()
+            validator.is_valid(data)
+        instance = cls.from_dict(data)
+        return instance
+
+    @classmethod
+    def from_json(cls, json_string:str):
+        """from_json
+        Generates me_armServo from json data
+        :param json_string: String containing the json data. Must adhere to arm.ServoSchema
+        :type json_string: str
+        """
+        data = json.loads(json_string)
+        validate(data, arm_servo_schema)
+        instance = cls.from_dict(data)
+        return instance
+
+    @classmethod
+    def from_dict(cls, data:{}):
+        """from_dict
+        Generates me_armServo from dictionary
+        :param data: The dictionary containing the servo data. Must adhere to arm.ServoSchema
+        :type data: dictionary
+        """
+        servo: ServoAttributes = None
+        if data['type'] == '':
+            servo = ES08MAIIAttributes()
+        elif data['type'] == '':
+            servo = MiuzeiSG90Attributes()
+        else:
+            servo = CustomServoAttributes.from_dict(data['attributes'])
+        instance = cls(
+            data['channel'],
+            servo,
+            data['arm-angles']['neutral'],
+            data['arm-angles']['min'],
+            data['arm-angles']['max']
+        )       
+        return instance
 
     @property
     def channel(self) -> int:

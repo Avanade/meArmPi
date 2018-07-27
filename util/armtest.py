@@ -24,12 +24,15 @@
 import time
 import logging
 import atexit
-from arm import me_arm
+import json
+from arm import me_arm, arm_attributes, me_armServo
 from controller import PCA9685, software_reset
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 print('Press Ctrl-C to quit...')
+
+test = me_armServo.from_json_file('me_arm.servo.json')
 
 resolution = 4096
 frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 

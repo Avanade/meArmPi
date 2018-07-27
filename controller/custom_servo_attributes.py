@@ -66,7 +66,9 @@ class CustomServoAttributes(ServoAttributes):
     @classmethod
     def from_json_file(cls, json_file:str):
         """from_json_file
-        Generates CustomServoAttributes from json data
+        Generates CustomServoAttributes from json file
+        :param json_file: name of the file containing the json data. Must adhere to Controller.ServoSchema
+        :type json_file: str
         """
         with open(json_file) as file:
             data = json.load(file)
@@ -78,6 +80,8 @@ class CustomServoAttributes(ServoAttributes):
     def from_json(cls, json_string:str):
         """from_json
         Generates CustomServoAttributes from json data
+        :param json_string: String containing the json data. Must adhere to Controller.ServoSchema
+        :type json_string: str
         """
         data = json.loads(json_string)
         validate(data, schema)
@@ -86,6 +90,11 @@ class CustomServoAttributes(ServoAttributes):
 
     @classmethod
     def from_dict(cls, data:{}):
+        """from_dict
+        Generates CustomServoAttributes from dictionary
+        :param data: The dictionary containing the servo data. Must adhere to Controller.ServoSchema
+        :type data: dictionary
+        """
         instance = cls()
         instance.max_pulse = data['max_pulse']
         instance.min_pulse = data['min_pulse']

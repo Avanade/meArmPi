@@ -42,9 +42,9 @@ schema = {
                 "max_angle": {"type": "number"},
                 "min_angle": {"type": "number"},
                 "neutral_angle": {"type": "number"}
-            }
+            },
+            "required": [ "max_pulse", "min_pulse", "neutral_pulse", "max_angle", "min_angle", "neutral_angle" ]
         },
-        "required": [ "max_pulse", "min_pulse", "neutral_pulse", "max_angle", "min_angle", "neutral_angle" ]
     },
     "allOf": [
         {"$ref": "#/definitions/servo_attributes"}
@@ -64,6 +64,17 @@ class CustomServoAttributes(ServoAttributes):
     neutral_angle = 0
 
     @classmethod
+    def from_json_file(cls, json_file:str):
+        """from_json_file
+        Generates CustomServoAttributes from json data
+        """
+        with open(json_file) as file:
+            data = json.load(file)
+            validate(data, schema)
+        instance = cls.from_dict(data)
+        return instance
+
+    @classmethod
     def from_json(cls, json_string:str):
         """from_json
         Generates CustomServoAttributes from json data
@@ -74,12 +85,12 @@ class CustomServoAttributes(ServoAttributes):
         return instance
 
     @classmethod
-    def from_dict(cls, dict:{}):
+    def from_dict(cls, data:{}):
         instance = cls()
-        instance.max_pulse = dict['max_pulse']
-        instance.min_pulse = dict['min_pulse']
-        instance.neutral_pulse = dict['neutral_pulse']
-        instance.min_angle = dict['min_angle']
-        instance.max_angle = dict['max_angle']
-        instance.neutral_angle = dict['neutral_angle']
+        instance.max_pulse = data['max_pulse']
+        instance.min_pulse = data['min_pulse']
+        instance.neutral_pulse = data['neutral_pulse']
+        instance.min_angle = data['min_angle']
+        instance.max_angle = data['max_angle']
+        instance.neutral_angle = data['neutral_angle']
         return instance

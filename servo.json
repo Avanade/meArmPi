@@ -1,9 +1,8 @@
 {
-    "max_pulse" : 2.3,
-    "min_pulse" : 0.6,
-    "neutral_pulse" : 1.4,
+    "max_pulse": 2.3,
+    "min_pulse": 0.6,
+    "neutral_pulse": 1.4,
     "max_angle": 85.0,
     "min_angle": -85.0,
     "neutral_angle": 0.0
 }
-  

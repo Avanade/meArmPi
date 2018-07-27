@@ -24,6 +24,7 @@
 import time
 import logging
 import atexit
+import json
 from controller import PCA9685, Servo, ServoAttributes, CustomServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, software_reset
 
 # Uncomment to enable debug output.
@@ -54,7 +55,10 @@ pwm  = PCA9685(
 attributes = MiuzeiSG90Attributes()
 
 # for custom attributes
-attributesv = CustomServoAttributes.from_json('../servo.json')
+# attributes = CustomServoAttributes.from_json_file('servo.json')
+with open('servo.json') as file:
+    data = file.read()
+attributes = CustomServoAttributes.from_json(data)
 
 def shutdown():
     """

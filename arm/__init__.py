@@ -20,3 +20,4 @@
 # THE SOFTWARE.
 """meArm controller for Raspberry Pi"""
 from .me_arm import me_arm
+from .arm_attributes import me_armAttributes, me_armServo

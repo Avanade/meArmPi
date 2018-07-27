@@ -26,13 +26,13 @@
 import logging
 import time
 import math
+from .servo_attributes import ServoAttributes
+from .miuzei_sg90_attributes import MiuzeiSG90Attributes
 
 class Servo(object):
     """Represents a servo on the controller."""
 
-    def __init__(self, controller, channel: int,
-                 min_pulse: float = 0.7, max_pulse: float = 2.1, neutral_pulse: float= 1.4,
-                 min_angle: float = -90, max_angle: float = 90, neutral_angle: float = 0):
+    def __init__(self, controller, channel: int, attributes: ServoAttributes = MiuzeiSG90Attributes()):
         """__init__
         Initialize Servo
             Attributes:
@@ -42,44 +42,29 @@ class Servo(object):
         :param channel: The channel on which the servo is operating.
         :type channel: int
 
-        :param min_pulse: The minimum signal pulse length.
-        :type min_pulse: float
+        :param attributes: The servo attribute (min/max/neutral pulses and angles).
+        :type attributes: ServoAttributes
 
-        :param max_pulse: The maximum signal pulse length.
-        :type max_pulse: float
-
-        :param neutral_pulse: The lenght of a pulse for the neutral position
-        :type neutral_pulse: float
-
-        :param min_angle: The minimum servo angle achieved via min_pulse.
-        :type min_angle: float
-
-        :param max_angle: The maximum servo angle achieved via max_pulse.
-        :type max_angle: float
-
-        :param neutral_angle: The neutral angle achieved via neutral_pulse.
-        :type neutral_angle: float
         """
+        self._logger = logging.getLogger(__name__)
         self._controller = controller
         self._channel = channel
-        self._min_pulse = min_pulse
-        self._max_pulse = max_pulse
-        self._neutral_pulse = neutral_pulse
-        self._min_angle = min_angle
-        self._max_angle = max_angle
-        self._neutral_angle = neutral_angle
+        self._attributes = attributes
+        if self._attributes is None: 
+            self._attributes = MiuzeiSG90Attributes()
+            self._logger.warning("No servo attributes specified. Using Miuzei SG90 as fallback")
+
         self._ticks = 0
         self._angle = 0
         self._pulse = 0
-        self._logger = logging.getLogger(__name__)
 
         #caluclate boundary ticks for servo
-        self._servo_min = self._calculate_servo_ticks_from_pulse(self._min_pulse)
-        self._servo_max = self._calculate_servo_ticks_from_pulse(self._max_pulse)
-        self._servo_neutral = self._calculate_servo_ticks_from_pulse(self._neutral_pulse)
+        self._servo_min = self._calculate_servo_ticks_from_pulse(self._attributes.min_pulse)
+        self._servo_max = self._calculate_servo_ticks_from_pulse(self._attributes.max_pulse)
+        self._servo_neutral = self._calculate_servo_ticks_from_pulse(self._attributes.neutral_pulse)
         
         #initialize servo
-        self.set_angle(self._neutral_angle)
+        self.set_angle(self._attributes.neutral_angle)
         
     @property
     def angle(self) -> float:
@@ -129,9 +114,9 @@ class Servo(object):
         :rtype: int
         """
 
-        if str(pulse) < str(self._min_pulse) or str(pulse) > str(self._max_pulse):
+        if str(pulse) < str(self._attributes.min_pulse) or str(pulse) > str(self._attributes.max_pulse):
             raise Exception('Pulse %f out of range. Must be between %f and %f' %
-                            (pulse, self._min_pulse, self._max_pulse))
+                            (pulse, self._attributes.min_pulse, self._attributes.max_pulse))
 
         pulse_length = 1000000.0                              # 1,000,000 us per second
         pulse_length /= float(self._controller.frequency)     # signal frequency
@@ -151,17 +136,17 @@ class Servo(object):
         :rtype: (float, int)        
         """
 
-        if angle < self._min_angle or angle > self._max_angle:
+        if angle < self._attributes.min_angle or angle > self._attributes.max_angle:
             raise Exception('Angle %d out of range. Must be between %d and %d' %
-                            (angle, self._min_angle, self._max_angle))
+                            (angle, self._attributes.min_angle, self._attributes.max_angle))
 
-        pulse = self._neutral_pulse
-        if angle > self._neutral_angle:
-            pulse += ((angle - self._neutral_angle) * (self._max_pulse - self._neutral_pulse)) / \
-                (self._max_angle - self._neutral_angle)
-        elif angle < self._neutral_angle:
-            pulse -= ((angle + self._neutral_angle) * (self._neutral_pulse - self._min_pulse)) / \
-                (self._min_angle + self._neutral_angle)
+        pulse = self._attributes.neutral_pulse
+        if angle > self._attributes.neutral_angle:
+            pulse += ((angle - self._attributes.neutral_angle) * (self._attributes.max_pulse - self._attributes.neutral_pulse)) / \
+                (self._attributes.max_angle - self._attributes.neutral_angle)
+        elif angle < self._attributes.neutral_angle:
+            pulse -= ((angle + self._attributes.neutral_angle) * (self._attributes.neutral_pulse - self._attributes.min_pulse)) / \
+                (self._attributes.min_angle + self._attributes.neutral_angle)
         self._logger.info('Angle %d -> pulse %f', angle, pulse)
         return self._calculate_servo_ticks_from_pulse(pulse), pulse
 

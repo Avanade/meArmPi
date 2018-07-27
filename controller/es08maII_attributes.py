@@ -20,44 +20,20 @@
 # THE SOFTWARE.
 #
 # pylint: disable=C0103
-"""Simple test routine for meArm on RPI"""
-import time
-import logging
-import atexit
-from arm import me_arm
-from controller import PCA9685, software_reset
+from .servo_attributes import ServoAttributes
 
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger(__name__)
-print('Press Ctrl-C to quit...')
+"""
+    Implements the properties class for the Miuzei SG90
+"""
 
-resolution = 4096
-frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
-servo_frequency = 50
-
-# Initialise the PCA9685 using the default address (0x40).
-controller = PCA9685(
-    0x40,
-    None,
-    frequency,
-    resolution,
-    servo_frequency)
-
-def shutdown():
-    """shutdown
-        Deletes the arm and then resets the controller
+class ES08MAIIAttributes(ServoAttributes):
     """
-    logger.info('Resetting servo and controller...')
-    logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
-    me_arm.delete_all()
-    software_reset()
+    Implements an abstract base class for servo properties
+    """
 
-# restier shutdown steps
-atexit.register(shutdown)
-
-my_arm = me_arm.createWithServoParameters(controller, 15, 12, 13, 14)
-my_arm.close()
-time.sleep(2)
-my_arm.open()
-time.sleep(2)
-my_arm.test()
+    max_pulse = 2.4
+    min_pulse = 0.6
+    neutral_pulse = 1.5
+    min_angle = -90.0
+    max_angle = 90.0
+    neutral_angle = -0.0

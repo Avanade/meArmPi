@@ -32,6 +32,7 @@ import logging
 import time
 import math
 from .servo import Servo
+from .servo_attributes import ServoAttributes
 
 # Registers/etc:
 PCA9685_ADDRESS = 0x40
@@ -165,31 +166,15 @@ class PCA9685(object):
         return self._resolution
 
 
-    def add_servo(self, channel: int,
-                  min_pulse: float = 0.7, max_pulse: float = 2.1, neutral_pulse: float = 1.4,
-                  min_angle: float = -90.0, max_angle: float = 90.0, neutral_angle: float = 0.0):
+    def add_servo(self, channel: int, attributes: ServoAttributes = None):
         """add_servo
         Adds a servo definition for a given channel.
+
         :param channel: The channel on which the servo is operating.
         :type channel: integer
 
-        :param min_pulse: The minimum signal pulse length.
-        :type min_pulse: float
-
-        :param max_pulse: The maximum signal pulse length.
-        :type max_pulse: float
-
-        :param neutral_pulse: The lenght of a pulse for the neutral position
-        :type neutral_pulse: float
-
-        :param min_angle: The minimum servo angle achieved via min_pulse.
-        :type min_angle: float
-
-        :param max_angle: The maximum servo angle achieved via max_pulse.
-        :type max_angle: float
-
-        :param neutral_angle: The neutral angle achieved via neutral_pulse.
-        :type neutral_angle: float
+        :param attributes: The servo attribute (min/max/neutral pulses and angles).
+        :type attributes: ServoAttributes
 
         """
         if channel < 0 or channel > 15:
@@ -199,9 +184,7 @@ class PCA9685(object):
             raise KeyError('There is already a servo on this channel: %d', channel)
 
 
-        self._servos[channel] = Servo(self, channel,
-                                      min_pulse, max_pulse, neutral_pulse,
-                                      min_angle, max_angle, neutral_angle)
+        self._servos[channel] = Servo(self, channel, attributes)
 
     def get_servo(self, channel: int) -> Servo:
         """get_servo

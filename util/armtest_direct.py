@@ -24,7 +24,7 @@
 import time
 import logging
 import atexit
-import controller
+from controller import PCA9685, Servo, ServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, software_reset
 
 # Uncomment to enable debug output.
 logging.basicConfig(level=logging.INFO)
@@ -35,7 +35,7 @@ resolution = 4096
 servo_frequency = 50
 
 # Initialise the PCA9685 using the default address (0x40).
-pwm = controller.PCA9685(
+pwm = PCA9685(
     0x40, 
     None,
     frequency,
@@ -45,26 +45,16 @@ pwm = controller.PCA9685(
 # Alternatively specify a different address and/or bus:
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
 
-
-servo_min_pulse = 0.6
-servo_max_pulse = 2.3
-servo_neutral_pulse = 1.4
-servo_min_angle = -85.0
-servo_max_angle = 85.0
-servo_neutral_angle = -0.0
+attributes = MiuzeiSG90Attributes()
 hip_channel = 15
 elbow_channel = 12
 shoulder_channel = 13
 gripper_channel = 14
 
-pwm.add_servo(hip_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle)
-pwm.add_servo(gripper_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle)
-pwm.add_servo(shoulder_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle)
-pwm.add_servo(elbow_channel, servo_min_pulse, servo_max_pulse, servo_neutral_pulse,
-              servo_min_angle, servo_max_angle, servo_neutral_angle)
+pwm.add_servo(hip_channel, attributes)
+pwm.add_servo(gripper_channel, attributes)
+pwm.add_servo(shoulder_channel, attributes)
+pwm.add_servo(elbow_channel, attributes)
 
 def shutdown():
     """Resets the arm at neutral position and then resets the controller"""
@@ -74,7 +64,7 @@ def shutdown():
     pwm.set_servo_angle(elbow_channel, elbow_neutral_angle)
     pwm.set_servo_angle(gripper_channel, gripper_open_angle)
     time.sleep(5)
-    controller.software_reset()
+    software_reset()
 
 # restier shutdown steps
 atexit.register(shutdown)

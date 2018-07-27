@@ -24,7 +24,7 @@
 import time
 import logging
 import atexit
-import controller
+from controller import PCA9685, Servo, ServoAttributes, CustomServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, software_reset
 
 # Uncomment to enable debug output.
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +36,7 @@ servo_frequency = 50
 chan = 1
 
 # Initialise the PCA9685 using the default address (0x40).
-pwm = controller.PCA9685(
+pwm  = PCA9685(
     0x40,
     None,
     frequency,
@@ -48,20 +48,13 @@ pwm = controller.PCA9685(
 
 # use to tune the servo
 # for Emax ES08MAII
-servo_min_pulse = 0.6
-servo_max_pulse = 2.4
-servo_neutral_pulse = 1.5
-servo_min_angle = -90.0
-servo_max_angle = 90.0
-servo_neutral_angle = -0.0
+# attributes = ES08MAIIAttributes()
 
 # for Miuzei SG90
-servo_min_pulse = 0.6
-servo_max_pulse = 2.3
-servo_neutral_pulse = 1.4
-servo_min_angle = -85.0
-servo_max_angle = 85.0
-servo_neutral_angle = -0.0
+attributes = MiuzeiSG90Attributes()
+
+# for custom attributes
+attributesv = CustomServoAttributes.from_json('../servo.json')
 
 def shutdown():
     """
@@ -69,48 +62,41 @@ def shutdown():
         resets the controller
     """
     logger.info('Resetting servo and controller...')
-    pwm.set_servo_pulse(chan, servo_min_pulse)
+    pwm.set_servo_pulse(chan, attributes.min_pulse)
     time.sleep(5)
-    pwm.set_servo_pulse(chan, servo_max_pulse)
+    pwm.set_servo_pulse(chan, attributes.max_pulse)
     time.sleep(5)
-    pwm.set_servo_pulse(chan, servo_neutral_pulse)
+    pwm.set_servo_pulse(chan, attributes.neutral_pulse)
     time.sleep(5)
-    controller.software_reset()
+    software_reset()
 
 # restier shutdown steps
 atexit.register(shutdown)
 
 #add the servo
-pwm.add_servo(
-    chan,
-    servo_min_pulse,
-    servo_max_pulse,
-    servo_neutral_pulse,
-    servo_min_angle,
-    servo_max_angle,
-    servo_neutral_angle)
+pwm.add_servo(chan, attributes)
 
 logger.info('Moving servo on channel %d, press Ctrl-C to quit...', chan)
 while True:
     #perform continous back and forth until user aborts
-    angle = servo_min_angle + 0.01
+    angle = attributes.min_angle + 0.01
     inc = 0.5
 
-    pwm.set_servo_pulse(chan, servo_neutral_pulse)
+    pwm.set_servo_pulse(chan, attributes.neutral_pulse)
     time.sleep(5)
-    pwm.set_servo_pulse(chan, servo_min_pulse)
+    pwm.set_servo_pulse(chan, attributes.min_pulse)
     time.sleep(5)
-    pwm.set_servo_pulse(chan, servo_max_pulse)
+    pwm.set_servo_pulse(chan, attributes.max_pulse)
     time.sleep(5)
 
-    while angle < servo_max_angle - 0.5:
+    while angle < attributes.max_angle - 0.5:
         pwm.set_servo_angle(chan, angle)
         time.sleep(0.005)
         angle += inc
 
     time.sleep(0.5)
 
-    while angle > servo_min_angle + 0.5:
+    while angle > attributes.min_angle + 0.5:
         pwm.set_servo_angle(chan, angle)
         time.sleep(0.005)
         angle -= inc

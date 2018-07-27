@@ -1,0 +1,102 @@
+[
+    {
+        "contoller": {
+            "address": 64,
+            "frequency": 26500000,
+            "resolution": 4096,
+            "servo_frequency": 50,
+            "arms": [
+                {
+                    "angle-increment": 0.5,
+                    "servos": {
+                        "hip": {
+                            "channel": 15,
+                            "type": "custom",
+                            "attributes":  {
+                                "min_pulse": 0.6,
+                                "max_pulse": 2.3,
+                                "neutral_pulse": 1.4,
+                                "min_angle": -85.0,
+                                "max_angle": 85.0,
+                                "neutral_angle": -0.0
+                            },
+                            "arm-angles": {
+                                "neutral": -0.0,
+                                "max": 84.5,
+                                "min": -84.5
+                            }
+                        },
+                        "elbow": {
+                            "channel": 12,
+                            "type": "SG-90",
+                            "arm-angles": {
+                                "neutral": -0.0,
+                                "max": 84.5,
+                                "min": -25.0
+                            }
+                        },
+                        "shoulder": {
+                            "channel": 13,
+                            "type": "SG-90",
+                            "arm-angles": {
+                                "neutral": 40.0,
+                                "max": 65.0,
+                                "min": -15.0
+                            }
+                        },
+                        "gripper": {
+                            "channel": 14,
+                            "type": "SG-90",
+                            "arm-angles": {
+                                "neutral": -0.0,
+                                "max": 27.5,
+                                "min": -20.0
+                            }
+                        }
+                    }
+                },
+                {
+                    "angle-increment": 0.5,
+                    "servos": {
+                        "hip": {
+                            "channel": 0,
+                            "type": "ES08MAII",
+                            "arm-angles": {
+                                "neutral": -0.0,
+                                "max": 90.0,
+                                "min": -90.0
+                            }
+                        },
+                        "elbow": {
+                            "channel": 1,
+                            "type": "ES08MAII",
+                            "arm-angles": {
+                                "neutral": -0.0,
+                                "max": 90.0,
+                                "min": -25.0
+                            }
+                        },
+                        "shoulder": {
+                            "channel": 2,
+                            "type": "ES08MAII",
+                            "arm-angles": {
+                                "neutral": 40.0,
+                                "max": 65.0,
+                                "min": -15.0
+                            }
+                        },
+                        "gripper": {
+                            "channel": 3,
+                            "type": "ES08MAII",
+                            "arm-angles": {
+                                "neutral": -0.0,
+                                "max": 27.5,
+                                "min": -20.0
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+]

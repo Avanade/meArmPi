@@ -32,8 +32,8 @@ arm_servo_schema = {
     "type" : "object",
     "properties" : {
         "channel" : {"type" : "number"},
-        "type": {"type" : "enum"},
-        "attributes" : {"ref": ""},
+        "type": { "type" : "string", "enum": ["custom", "SG-90", "ES08MAII"]},
+        "attributes" : {"ref": "http://theRealThor.com/meArm.servo-attributes.schema.json"},
         "arm-angles": {
             "type": "object",
             "properties": {
@@ -90,8 +90,8 @@ class me_armServo(object):
         with open(json_file) as file:
             data = json.load(file)
             resolver = RefResolver('', arm_servo_schema, schema_store)
-            validator = Draft4Validator(arm_servo_schema, None, resolver)
-            validator.validate()
+            validator = Draft4Validator(arm_servo_schema, [], resolver)
+            #validator.validate()
             validator.is_valid(data)
         instance = cls.from_dict(data)
         return instance

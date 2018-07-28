@@ -192,7 +192,7 @@ class me_arm(object):
         """
 
         servo_tag = str(hip_channel).zfill(2) + str(elbow_channel).zfill(2) + str(shoulder_channel).zfill(2) + str(gripper_channel).zfill(2)
-        id = str(controller.add_servo) + servo_tag
+        id = str(controller.address) + servo_tag
 
         if id in me_arm._instances: 
             return me_arm._instances[id]

@@ -23,33 +23,11 @@
 import json
 from jsonschema import validate
 from .servo_attributes import ServoAttributes
+from .schemas import servo_schema as schema
 
 """
     Implements the properties class for a custom servo reading from json
 """
-
-schema = {
-    "$id": "http://theRealThor.com/meArm.servo-attributes.schema.json",
-    "title": "Servo Attributes",
-    "description": "Describes key servo attributes for tuning.",
-    "definitions": {
-        "servo_attributes": {
-            "type" : "object",
-            "properties" : {
-                "max_pulse" : {"type" : "number"},
-                "min_pulse" : {"type" : "number"},
-                "neutral_pulse" : {"type": "number"},
-                "max_angle": {"type": "number"},
-                "min_angle": {"type": "number"},
-                "neutral_angle": {"type": "number"}
-            },
-            "required": [ "max_pulse", "min_pulse", "neutral_pulse", "max_angle", "min_angle", "neutral_angle" ]
-        },
-    },
-    "allOf": [
-        {"$ref": "#/definitions/servo_attributes"}
-    ]
-}
 
 class CustomServoAttributes(ServoAttributes):
     """

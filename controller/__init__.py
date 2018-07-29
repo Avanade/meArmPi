@@ -20,9 +20,10 @@
 # THE SOFTWARE.
 #
 # pylint: disable=C0103
+from .schemas import servo_schema as ServoSchema, controller_schema as ControllerSchema
 from .servo import Servo
 from .PCA9685 import PCA9685, software_reset
 from .servo_attributes import ServoAttributes
 from .miuzei_sg90_attributes import MiuzeiSG90Attributes
 from .es08maII_attributes import ES08MAIIAttributes
-from .custom_servo_attributes import CustomServoAttributes, schema as ServoSchema
+from .custom_servo_attributes import CustomServoAttributes

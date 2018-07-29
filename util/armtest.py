@@ -34,17 +34,18 @@ print('Press Ctrl-C to quit...')
 
 test = me_armServo.from_json_file('me_arm.servo.json')
 
-resolution = 4096
-frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
-servo_frequency = 50
+# resolution = 4096
+# frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
+# servo_frequency = 50
 
 # Initialise the PCA9685 using the default address (0x40).
-controller = PCA9685(
-    0x40,
-    None,
-    frequency,
-    resolution,
-    servo_frequency)
+# controller  = PCA9685(
+#     0x40,
+#     None,
+#     frequency,
+#     resolution,
+#     servo_frequency)
+controller = PCA9685.from_json_file('pca9685.json')
 
 def shutdown():
     """shutdown

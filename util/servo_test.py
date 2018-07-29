@@ -31,18 +31,19 @@ from controller import PCA9685, Servo, ServoAttributes, CustomServoAttributes, M
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-resolution = 4096
-frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board.
-servo_frequency = 50
+# resolution = 4096
+# frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board.
+# servo_frequency = 50
 chan = 1
 
 # Initialise the PCA9685 using the default address (0x40).
-pwm  = PCA9685(
-    0x40,
-    None,
-    frequency,
-    resolution,
-    servo_frequency)
+# pwm  = PCA9685(
+#     0x40,
+#     None,
+#     frequency,
+#     resolution,
+#     servo_frequency)
+pwm = PCA9685.from_json_file('pca9685.json')
 
 # Alternatively specify a different address and/or bus:
 #pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
@@ -52,7 +53,7 @@ pwm  = PCA9685(
 # attributes = ES08MAIIAttributes()
 
 # for Miuzei SG90
-attributes = MiuzeiSG90Attributes()
+# attributes = MiuzeiSG90Attributes()
 
 # for custom attributes
 # attributes = CustomServoAttributes.from_json_file('servo.json')

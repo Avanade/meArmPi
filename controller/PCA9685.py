@@ -31,8 +31,11 @@
 import logging
 import time
 import math
+import json
+from jsonschema import validate
 from .servo import Servo
 from .servo_attributes import ServoAttributes
+from .schemas import controller_schema as schema
 
 # Registers/etc:
 PCA9685_ADDRESS = 0x40
@@ -57,7 +60,6 @@ SLEEP = 0x10
 ALLCALL = 0x01
 INVRT = 0x10
 OUTDRV = 0x04
-
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +130,47 @@ class PCA9685(object):
         self._device.write8(MODE1, mode)
         time.sleep(0.005)  # wait for oscillator
         self.set_pwm_freq(self._servo_frequency)
+
+    @classmethod
+    def from_json_file(cls, json_file:str):
+        """from_json_file
+        Generates PCA9685 from json file
+        :param json_file: name of the file containing the json data. Must adhere to Controller.ControllerSchema
+        :type json_file: str
+        """
+        with open(json_file) as file:
+            data = json.load(file)
+            validate(data, schema)
+        instance = cls.from_dict(data)
+        return instance
+
+    @classmethod
+    def from_json(cls, json_string:str):
+        """from_json
+        Generates PCA9685 from json data
+        :param json_string: String containing the json data. Must adhere to Controller.ControllerSchema
+        :type json_string: str
+        """
+        data = json.loads(json_string)
+        validate(data, schema)
+        instance = cls.from_dict(data)
+        return instance
+
+    @classmethod
+    def from_dict(cls, data:{}):
+        """from_dict
+        Generates PCA9685 from dictionary
+        :param data: The dictionary containing the servo data. Must adhere to Controller.ControllerSchema
+        :type data: dictionary
+        """
+        instance = cls(
+            data['instance'],
+            None,
+            data['frequency'],
+            data['resolution'],
+            data['servo_frequency']
+        )
+        return instance
 
     @property
     def address(self) -> int:

@@ -24,28 +24,30 @@
 import time
 import logging
 import atexit
-from controller import PCA9685, Servo, ServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, software_reset
+from controller import PCA9685, Servo, ServoAttributes, CustomServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, software_reset
 
 # Uncomment to enable debug output.
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
-resolution = 4096
-servo_frequency = 50
+# frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
+# resolution = 4096
+# servo_frequency = 50
 
 # Initialise the PCA9685 using the default address (0x40).
-pwm = PCA9685(
-    0x40, 
-    None,
-    frequency,
-    resolution,
-    servo_frequency)
+# pwm  = PCA9685(
+#     0x40,
+#     None,
+#     frequency,
+#     resolution,
+#     servo_frequency)
+pwm = PCA9685.from_json_file('pca9685.json')
 
 # Alternatively specify a different address and/or bus:
-#pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
+# pwm = Adafruit_PCA9685.PCA9685(address=0x41, busnum=2)
 
-attributes = MiuzeiSG90Attributes()
+# attributes = MiuzeiSG90Attributes()
+attributes = CustomServoAttributes.from_json_file('servo.json')
 hip_channel = 15
 elbow_channel = 12
 shoulder_channel = 13

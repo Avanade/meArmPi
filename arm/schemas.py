@@ -34,30 +34,22 @@ arm_servo_schema = {
             "properties": {
                 "neutral" : {"type": "number"},
                 "max": {"type": "number"},
-                "min": {"type": "number"},               
-            }
+                "min": {"type": "number"}
+            },
             "required": [ "max", "min", "neutral" ]
         },
         "arm": {
             "type": "object"
         }
-    }
+    },
     "type" : "object",
     "properties" : {
         "channel" : {"type" : "number"},
         "type": { "type" : "string", "enum": ["custom", "SG-90", "ES08MAII"]},
         "attributes" : {"ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/servo_attributes"},
-        "arm-angles": {
-            "type": "object",
-            "properties": {
-                "neutral" : {"type": "number"},
-                "max": {"type": "number"},
-                "min": {"type": "number"},
-            },
-            "required": [ "max", "min", "neutral" ]
-        },
+        "angles": { "ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/range"},
     },
-    "required": [ "channel", "type", "arm-angles"]
+    "required": [ "channel", "type", "angles"]
 }
 
 me_arm_schema = {

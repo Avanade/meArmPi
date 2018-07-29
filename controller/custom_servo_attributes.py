@@ -74,10 +74,10 @@ class CustomServoAttributes(ServoAttributes):
         :type data: dictionary
         """
         instance = cls()
-        instance.max_pulse = data['max_pulse']
-        instance.min_pulse = data['min_pulse']
-        instance.neutral_pulse = data['neutral_pulse']
-        instance.min_angle = data['min_angle']
-        instance.max_angle = data['max_angle']
-        instance.neutral_angle = data['neutral_angle']
+        instance.max_pulse = data['pulse']['max']
+        instance.min_pulse = data['pulse']['min']
+        instance.neutral_pulse = data['pulse']['neutral']
+        instance.min_angle = data['angle']['min']
+        instance.max_angle = data['angle']['max']
+        instance.neutral_angle = data['angle']['neutral']
         return instance

@@ -48,17 +48,22 @@ servo_schema = {
     "title": "Servo Attributes",
     "description": "Describes key servo attributes for tuning.",
     "definitions": {
+        "range": {
+            "type" : "object",
+            "properties" : {
+                "max" : {"type" : "number"},
+                "min" : {"type" : "number"},
+                "neutral" : {"type": "number"}
+            },
+            "required": [ "max", "min", "neutral" ]
+        },
         "servo_attributes": {
             "type" : "object",
             "properties" : {
-                "max_pulse" : {"type" : "number"},
-                "min_pulse" : {"type" : "number"},
-                "neutral_pulse" : {"type": "number"},
-                "max_angle": {"type": "number"},
-                "min_angle": {"type": "number"},
-                "neutral_angle": {"type": "number"}
+                "pulse": { "$ref": "#/definitions/range"},
+                "angle": { "$ref": "#/definitions/range"}
             },
-            "required": [ "max_pulse", "min_pulse", "neutral_pulse", "max_angle", "min_angle", "neutral_angle" ]
+            "required": [ "pulse", "angle" ]
         },
     },
     "allOf": [

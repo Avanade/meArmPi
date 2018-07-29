@@ -29,34 +29,68 @@ arm_servo_schema = {
     "title": "Servo Attributes",
     "description": "Describes additional meArm servo attributes.",
     "definitions": {
-        "angles": {
+        "arm_servo": {
             "type": "object",
-            "properties": {
-                "neutral" : {"type": "number"},
-                "max": {"type": "number"},
-                "min": {"type": "number"}
+            "properties" : {
+                "channel" : {"type" : "number"},
+                "type": { "type" : "string", "enum": ["custom", "SG-90", "ES08MAII"]},
+                "attributes" : {"ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/servo_attributes"},
+                "range": { "ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/range"}
             },
-            "required": [ "max", "min", "neutral" ]
-        },
-        "arm": {
-            "type": "object"
+            "required": [ "channel", "type", "range"]
         }
     },
-    "type" : "object",
-    "properties" : {
-        "channel" : {"type" : "number"},
-        "type": { "type" : "string", "enum": ["custom", "SG-90", "ES08MAII"]},
-        "attributes" : {"ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/servo_attributes"},
-        "angles": { "ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/range"},
-    },
-    "required": [ "channel", "type", "angles"]
+    "allOf": [
+        { "$ref": "#/definitions/arm_servo" }
+    ]
 }
 
 me_arm_schema = {
     "$id": "http://theRealThor.com/meArm.me-arm.schema.json",
     "title": "meArm",
-    "description": "Describes a meArm setup."
-
+    "description": "Describes a meArm setup.",
+    "definitions": {
+        "arm": {
+            "type": "object",
+            "properties": {
+                "angle-increment": {"type": "number"},
+                "servos": {
+                    "type": "object",
+                    "properties": {
+                        "hip": { "$ref": "http://theRealThor.com/meArm.arm-servo.schema.json/#/definitions/arm_servo"},
+                        "eblow": { "$ref": "http://theRealThor.com/meArm.arm-servo.schema.json/#/definitions/arm_servo"},
+                        "shoulder": { "$ref": "http://theRealThor.com/meArm.arm-servo.schema.json/#/definitions/arm_servo"},
+                        "gripper": { "$ref": "http://theRealThor.com/meArm.arm-servo.schema.json/#/definitions/arm_servo"}
+                    },
+                    "required": ["hip", "elbow", "shoulder", "gripper"]
+                }
+            },
+            "required": ["angle-increment", "servos"]
+        },
+        "arm-controller": {
+            "type": "object",
+            "properties": {
+                "controller": { "$ref": "http://theRealThor.com/meArm.servo-controller.schema.json/#/definitions/controller_attributes"},
+                "arms": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/arm"},
+                    "minItems": 1
+                }
+            },
+            "required": ["controller", "arms"]
+        },
+        "environment": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/arm-controller"},
+            "minItems": 1,
+            "maxItems": 255
+        }
+    },
+    "oneOf": [
+        { "$ref": "#/definitions/arm" },
+        { "$ref": "#/definitions/arm_controller" },
+        { "$ref": "#/definitions/environment" }
+    ]
 }
 
 schema_store = {

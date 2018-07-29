@@ -13,7 +13,7 @@
             "neutral": -0.0
         }
     },
-    "angle": {
+    "range": {
         "neutral": -0.0,
         "max": 84.5,
         "min": -84.5

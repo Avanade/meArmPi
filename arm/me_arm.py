@@ -23,11 +23,13 @@
 """Module allowing control of a meArm using the RPI"""
 import time
 import logging
-
-from controller import PCA9685, Servo, ServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, CustomServoAttributes
+import json
+from jsonschema import validate, RefResolver, Draft4Validator
+from controller import PCA9685, Servo, ServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, CustomServoAttributes, software_reset
 from kinematics import Kinematics, Point
 from .arm_servo_attributes import me_armServo
 from .arm_attributes import me_armAttributes
+from .schemas import me_arm_schema, arm_servo_schema, schema_store
 
 class me_arm(object):
     """Control meArm"""
@@ -112,6 +114,7 @@ class me_arm(object):
 
         if initialize: self.initialize()
         me_arm._instances[self._id] = self
+        self._logger.info("meArm with id %s created", self._id)
     
     def __setup_defaults(self, hip_channel: int, elbow_channel: int, shoulder_channel: int, gripper_channel: int):
         """__setup_defaults
@@ -145,6 +148,60 @@ class me_arm(object):
         self._hip_angle = me_arm.hip_neutral_angle
         x, y, z = self._kinematics.toCartesian(self._hip_angle, self._shoulder_angle, self._elbow_angle)
         self._position = Point.fromCartesian(x, y, z)        
+
+    @classmethod
+    def boot_from_json_file(cls, json_file:str):
+        """boot_from_json_file
+        Generates a meArm environment from json file
+        :param json_file: name of the file containing the json data. Must adhere to me_arm.meArmSchema
+        :type json_file: str
+        """
+        with open(json_file) as file:
+            data = json.load(file)
+            resolver = RefResolver('', arm_servo_schema, schema_store)
+            validator = Draft4Validator(arm_servo_schema, [], resolver)
+            #validator.validate()
+            validator.is_valid(me_arm_schema)
+        return cls.boot_from_dict(data)
+
+
+    @classmethod
+    def boot_from_json(cls, json_string:str):
+        """boot_from_json
+        Generates a meArm environment from json data
+        :param json_string: String containing the json data. Must adhere to me_arm.meArmSchema
+        :type json_string: str
+        """
+        data = json.loads(json_string)
+        resolver = RefResolver('', arm_servo_schema, schema_store)
+        validator = Draft4Validator(arm_servo_schema, [], resolver)
+        #validator.validate()
+        validator.is_valid(me_arm_schema)
+        return cls.boot_from_dict(data)
+
+    @classmethod
+    def boot_from_dict(cls, data:{}):
+        """boot_from_dict
+        Generates a meArm environment from dictionary
+        :param data: The dictionary containing the servo data. Must adhere to me_arm.meArmSchema
+        :type data: dictionary
+        """
+        for c in data:
+            controller = PCA9685.from_dict(c['controller'])
+            for a in c['arms']:
+                s = a.servos
+                tag = str(s.hip.channel).zfill(2) + str(s.elbow.channel).zfill(2) + str(s.shoulder.channel).zfill(2) + str(s.gripper.channel).zfill(2)
+                id = str(controller.address).zfill(6) + tag
+                if id in me_arm._instances: continue
+                obj = cls(controller, s.hip.channel, s.elbow.channel, s.shoulder.channel, s.gripper.channel, False)
+                obj._hip_servo = me_armServo.from_dict(s.hip)
+                obj._shoulder_servo = me_armServo.from_dict(s.shoulder) 
+                obj._elbow_servo = me_armServo.from_dict(s.elbow) 
+                obj._gripper_servo = me_armServo.from_dict(s.gripper)
+                obj._inc = a.angle_increment
+                obj.initialize()
+                cls._instances[id] = obj
+        return cls._instances
 
     @classmethod
     def createWithServoParameters(cls, controller: PCA9685,
@@ -181,19 +238,20 @@ class me_arm(object):
 
         #override defaults for servos
         obj.initialize()
-        me_arm._instances[id] = obj
+        cls._instances[id] = obj
         return obj
 
     @classmethod
-    def delete_all(cls):
-        """delete_all
-        Deletes all meArms currently registered
+    def shutdown(cls):
+        """shutdown
+        Deletes all meArms currently registered and shutsdown environment
         """
         arm: cls = None
         for key in cls._instances.keys():
             arm = cls._instances[key]
             arm.reset()
         cls._instances.clear()
+        software_reset()
 
     @classmethod
     def get(cls, id: str):
@@ -236,7 +294,6 @@ class me_arm(object):
         """
         self.reset()
         del me_arm._instances[self._id]
-
 
     def close(self):
         """close
@@ -330,6 +387,7 @@ class me_arm(object):
         self._controller.add_servo(self._elbow_servo.channel, self._elbow_servo.attributes)
         self._controller.add_servo(self._gripper_servo.channel, self._gripper_servo.attributes)
         self.reset()
+        self._logger.info("meArm with id %s initialized", self._id)
 
     def open(self):
         """open

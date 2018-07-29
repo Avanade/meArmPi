@@ -32,7 +32,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 print('Press Ctrl-C to quit...')
 
-test = me_armServo.from_json_file('me_arm.servo.json')
 
 # resolution = 4096
 # frequency = 26500000 # This has been tweaked to provide exact pulse timing for the board. 
@@ -45,7 +44,7 @@ test = me_armServo.from_json_file('me_arm.servo.json')
 #     frequency,
 #     resolution,
 #     servo_frequency)
-controller = PCA9685.from_json_file('pca9685.json')
+#controller = PCA9685.from_json_file('pca9685.json')
 
 def shutdown():
     """shutdown
@@ -53,13 +52,20 @@ def shutdown():
     """
     logger.info('Resetting servo and controller...')
     logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
-    me_arm.delete_all()
-    software_reset()
+    me_arm.shutdown()
+    #software_reset()
 
 # restier shutdown steps
 atexit.register(shutdown)
 
-my_arm = me_arm.createWithServoParameters(controller, 15, 12, 13, 14)
+#my_arm = me_arm.createWithServoParameters(controller, 15, 12, 13, 14)
+#my_arm.close()
+#time.sleep(2)
+#my_arm.open()
+#time.sleep(2)
+#my_arm.test()
+arms = me_arm.boot_from_json_file('me_arm.json')
+my_arm = next(iter(arms.values()))
 my_arm.close()
 time.sleep(2)
 my_arm.open()

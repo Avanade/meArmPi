@@ -78,7 +78,10 @@ class me_armServo(object):
         :type json_string: str
         """
         data = json.loads(json_string)
-        validate(data, arm_servo_schema)
+        resolver = RefResolver('', arm_servo_schema, schema_store)
+        validator = Draft4Validator(arm_servo_schema, [], resolver)
+        #validator.validate()
+        validator.is_valid(data)
         instance = cls.from_dict(data)
         return instance
 
@@ -99,9 +102,9 @@ class me_armServo(object):
         instance = cls(
             data['channel'],
             servo,
-            data['angle']['neutral'],
-            data['angle']['min'],
-            data['angle']['max']
+            data['range']['neutral'],
+            data['range']['min'],
+            data['range']['max']
         )       
         return instance
 

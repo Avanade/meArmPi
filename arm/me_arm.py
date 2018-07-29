@@ -189,16 +189,16 @@ class me_arm(object):
         for c in data:
             controller = PCA9685.from_dict(c['controller'])
             for a in c['arms']:
-                s = a.servos
-                tag = str(s.hip.channel).zfill(2) + str(s.elbow.channel).zfill(2) + str(s.shoulder.channel).zfill(2) + str(s.gripper.channel).zfill(2)
+                s = a['servos']
+                tag = str(s['hip']['channel']).zfill(2) + str(s['elbow']['channel']).zfill(2) + str(s['shoulder']['channel']).zfill(2) + str(s['gripper']['channel']).zfill(2)
                 id = str(controller.address).zfill(6) + tag
                 if id in me_arm._instances: continue
-                obj = cls(controller, s.hip.channel, s.elbow.channel, s.shoulder.channel, s.gripper.channel, False)
-                obj._hip_servo = me_armServo.from_dict(s.hip)
-                obj._shoulder_servo = me_armServo.from_dict(s.shoulder) 
-                obj._elbow_servo = me_armServo.from_dict(s.elbow) 
-                obj._gripper_servo = me_armServo.from_dict(s.gripper)
-                obj._inc = a.angle_increment
+                obj = cls(controller, s['hip']['channel'], s['elbow']['channel'], s['shoulder']['channel'], s['gripper']['channel'], False)
+                obj._hip_servo = me_armServo.from_dict(s['hip'])
+                obj._shoulder_servo = me_armServo.from_dict(s['shoulder']) 
+                obj._elbow_servo = me_armServo.from_dict(s['elbow']) 
+                obj._gripper_servo = me_armServo.from_dict(s['gripper'])
+                obj._inc = a['angle-increment']
                 obj.initialize()
                 cls._instances[id] = obj
         return cls._instances

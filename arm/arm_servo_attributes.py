@@ -93,9 +93,9 @@ class me_armServo(object):
         :type data: dictionary
         """
         servo: ServoAttributes = None
-        if data['type'] == '':
+        if data['type'] == 'ES08MAII':
             servo = ES08MAIIAttributes()
-        elif data['type'] == '':
+        elif data['type'] == 'SG-90':
             servo = MiuzeiSG90Attributes()
         else:
             servo = CustomServoAttributes.from_dict(data['attributes'])

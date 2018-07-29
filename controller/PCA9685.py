@@ -164,7 +164,7 @@ class PCA9685(object):
         :type data: dictionary
         """
         instance = cls(
-            data['instance'],
+            data['address'],
             None,
             data['frequency'],
             data['resolution'],

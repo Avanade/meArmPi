@@ -99,9 +99,9 @@ class me_armServo(object):
         instance = cls(
             data['channel'],
             servo,
-            data['angles']['neutral'],
-            data['angles']['min'],
-            data['angles']['max']
+            data['angle']['neutral'],
+            data['angle']['min'],
+            data['angle']['max']
         )       
         return instance
 

@@ -28,7 +28,7 @@ import json
 from arm import me_arm, arm_attributes, me_armServo
 from controller import PCA9685, software_reset
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 print('Press Ctrl-C to quit...')
 

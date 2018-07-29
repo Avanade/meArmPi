@@ -172,7 +172,7 @@ class me_arm(object):
         """
 
         servo_tag = str(hip_channel).zfill(2) + str(elbow_channel).zfill(2) + str(shoulder_channel).zfill(2) + str(gripper_channel).zfill(2)
-        id = str(controller.address) + servo_tag
+        id = str(controller.address).zfill(6) + servo_tag
 
         if id in me_arm._instances: 
             return me_arm._instances[id]
@@ -190,10 +190,10 @@ class me_arm(object):
         Deletes all meArms currently registered
         """
         arm: cls = None
-        id: str = ""
-        for id, arm in me_arm._instances.items():
-            arm.delete()
-            del me_arm._instances[id]
+        for key in cls._instances.keys():
+            arm = cls._instances[key]
+            arm.reset()
+        cls._instances.clear()
 
     @classmethod
     def get(cls, id: str):
@@ -329,6 +329,7 @@ class me_arm(object):
         self._controller.add_servo(self._shoulder_servo.channel, self._shoulder_servo.attributes)
         self._controller.add_servo(self._elbow_servo.channel, self._elbow_servo.attributes)
         self._controller.add_servo(self._gripper_servo.channel, self._gripper_servo.attributes)
+        self.reset()
 
     def open(self):
         """open
@@ -341,11 +342,11 @@ class me_arm(object):
     def reset(self):
         """shutdown
         Resets the arm at neutral position"""
-        self._logger.info('Resetting arm ...')
+        self._logger.info('Resetting arm %s...', self._id)
         self._controller.set_servo_angle(self._hip_servo.channel, self._hip_servo.neutral)
         self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_servo.neutral)
         self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_servo.neutral)
-        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.neutral)
+        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.max)
         time.sleep(0.3)
 
     def test(self):

@@ -1,15 +1,19 @@
 {
     "channel": 15,
     "type": "custom",
-    "attributes":  {
-        "min_pulse": 0.6,
-        "max_pulse": 2.3,
-        "neutral_pulse": 1.4,
-        "min_angle": -85.0,
-        "max_angle": 85.0,
-        "neutral_angle": -0.0
+    "attributes": {
+        "pulse": {
+            "min": 0.6,
+            "max": 2.3,
+            "neutral": 1.4
+        },
+        "angle": {
+            "min": -85.0,
+            "max": 85.0,
+            "neutral": -0.0
+        }
     },
-    "arm-angles": {
+    "angle": {
         "neutral": -0.0,
         "max": 84.5,
         "min": -84.5

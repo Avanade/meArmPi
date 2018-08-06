@@ -215,6 +215,7 @@ definitions:
         - "moveTo"
         - "grab"
         - "release"
+        - "test"
       target:
         $ref: "#/definitions/Point"
   Operations:

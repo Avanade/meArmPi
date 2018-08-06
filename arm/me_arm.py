@@ -441,7 +441,7 @@ class me_arm(object):
         self._controller.set_servo_angle(self._hip_servo.channel, self._hip_servo.neutral)
         self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_servo.neutral)
         self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_servo.neutral)
-        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.max)
+        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
         time.sleep(0.3)
 
     def test(self):

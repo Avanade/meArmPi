@@ -52,7 +52,7 @@ class me_arm(object):
     _inc = 0.5                      # servo movement increment in degrees
 
     _instances = {}
-    _controllers = [int]
+    _controllers: [int] = []
 
     def __init__(self, 
             controller: PCA9685,

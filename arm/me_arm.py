@@ -49,9 +49,10 @@ class me_arm(object):
 
     gripper_closed_angle = 27.5     # servo angle for closed gripper
     gripper_open_angle = -20.0      # servo angle for open gripper
-    _inc = 0.5                       # servo movement increment in degrees
+    _inc = 0.5                      # servo movement increment in degrees
 
     _instances = {}
+    _controllers = [int]
 
     def __init__(self, 
             controller: PCA9685,
@@ -114,6 +115,7 @@ class me_arm(object):
 
         if initialize: self.initialize()
         me_arm._instances[self._id] = self
+        if not controller.address in me_arm._controllers: me_arm._controllers.append(controller.address)
         self._logger.info("meArm with id %s created", self._id)
     
     def __setup_defaults(self, hip_channel: int, elbow_channel: int, shoulder_channel: int, gripper_channel: int):
@@ -163,7 +165,6 @@ class me_arm(object):
             #validator.validate()
             validator.is_valid(me_arm_schema)
         return cls.boot_from_dict(data)
-
 
     @classmethod
     def boot_from_json(cls, json_string:str):
@@ -277,6 +278,34 @@ class me_arm(object):
         :rtype: [str]
         """
         return cls._instances.keys()
+
+    @classmethod
+    def get_controllers(cls) -> [int]:
+        """get_controllers
+        Gets a list of registered controller addresses
+
+        :return: A list of meArm controller addresses
+        :rtype: [int]
+        """
+        return cls._controllers.copy()
+
+    @property
+    def controller(self) -> int:
+        """Gets the controller address for the arm
+
+        :return: The address of the controller
+        :rtype: int
+        """
+        return self._controller.address
+
+    @property
+    def name(self) -> str:
+        """Gets the name for the arm
+
+        :return: The name of the arm
+        :rtype: str
+        """
+        return self._id
 
     @property
     def position(self) -> Point:

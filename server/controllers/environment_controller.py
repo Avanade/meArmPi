@@ -19,40 +19,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-"""Common module for meArm tracking globals and singeltons."""
-import platform
-import atexit
-import logging
-import json
+"""Environmnet controller for the RPI meArm REST interface."""
+import connexion
 
-from server.models.status import Status as Status
+from server.models.environment import Environment  # noqa: E501
 from arm import me_arm
 
-global VERSION
-global HOSTNAME
+def get_environment() -> Environment:  # noqa: E501
+    """get_environment
 
-VERSION = "0.0.1"
-HOSTNAME = platform.node()
+    Gets the environment tolpology # noqa: E501
 
-def init():
-    """Initialize globals."""
 
-    global token
-    global status
-
-    token = {}
-    status = {}
-
-    me_arm.boot_from_json_file('me_arm.json')
-    for name in me_arm.get_names():
-        token[name] = None
-        status[name] = Status(HOSTNAME, VERSION, False)
-
-def shutdown():
-    """shutdown
-        Deletes the arm and then resets the controller
+    :rtype: Environment
     """
-    me_arm.shutdown()
-
-# restier shutdown steps
-atexit.register(shutdown)
+    arms = me_arm.get_names()
+    controllers = me_arm.get_controllers()
+    return Environment(controllers, len(arms), arms)

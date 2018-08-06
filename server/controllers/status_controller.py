@@ -23,23 +23,28 @@
 from server.models.point import Point as PointModel  # noqa: E501
 from server import common
 
-def get_arm():  # noqa: E501
+def get_arm(id):  # noqa: E501
     """get_arm
-
     Gets the current status of the meArm. # noqa: E501
+
+    :param id: The id of the meArm.
+    :type id: str
 
     :rtype: Status
     """
-    return common.Status.to_dict()
+    status = common.status[id]
+    return status.to_dict()
 
-def get_position():  # noqa: E501
+def get_position(id):  # noqa: E501
     """get_position
-
     Gets the current position of the meArm # noqa: E501
 
+    :param id: The id of the meArm.
+    :type id: str
 
     :rtype: Point
     """
-    if common.Status.position is None:
+    status = common.status[id]
+    if status.position is None:
         return PointModel(0, 0, 0, 0, 0, 0).to_dict()
-    return common.Status.position().to_dict()
+    return status.position.to_dict()

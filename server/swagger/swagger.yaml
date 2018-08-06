@@ -12,59 +12,86 @@ paths:
   /arm:
     get:
       tags:
+      - "Environment"
+      description: "Gets the environment tolpology"
+      operationId: "get_environment"
+      parameters: []
+      responses:
+        200:
+          description: "Successfully retrieved environment topology"
+          schema:
+            $ref: "#/definitions/Environment"
+      x-swagger-router-controller: "server.controllers.environment_controller"
+  /arm/{id}:
+    get:
+      tags:
       - "Status"
       description: "Gets the current status of the meArm."
       operationId: "get_arm"
-      parameters: []
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "The id of the meArm." 
       responses:
         200:
           description: "Successfully retrieved operational status of the meArm."
           schema:
             $ref: "#/definitions/Status"
       x-swagger-router-controller: "server.controllers.status_controller"
-  /arm/position:
+  /arm/{id}/position:
     get:
       tags:
       - "Status"
       description: "Gets hte current position of the meArm"
       operationId: "get_position"
-      parameters: []
+      parameters: 
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "The id of the meArm." 
       responses:
         200:
           description: "Successfully obtained position."
           schema:
             $ref: "#/definitions/Point"
       x-swagger-router-controller: "server.controllers.status_controller"
-  /arm/checkout:
+  /arm/{id}/checkout:
     post:
       tags:
       - "Operation"
       description: "Checks out the arm for a session."
       operationId: "checkout"
-      parameters: []
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "The id of the meArm." 
       responses:
         200:
           description: "Successfully checkout out the meArm"
           schema:
-            type: "object"
-            properties:
-              token:
-                type: "string"
-                format: "uuid"
-                example: "0729a580-2240-11e6-9eb5-0002a5d5c51b"
-                description: "Token to use for any operation in the session"
+            $ref: "#/definitions/Token"
         403:
           description: "Cannot checkout because arm is checkout to another user."
           schema:
             $ref: "#/definitions/Status"
       x-swagger-router-controller: "server.controllers.operation_controller"
-  /arm/checkin:
+  /arm/{id}/checkin:
     post:
       tags:
       - "Operation"
       description: "Checks in the arm to complete the session and remove the lock"
       operationId: "checkin"
       parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "The id of the meArm." 
       - name: "token"
         in: "header"
         description: "Session token. This token should be obtained using /arm/checkout."
@@ -75,34 +102,25 @@ paths:
         200:
           description: "Successfully checked in the meArm"
           schema:
-            type: "object"
-            properties:
-              checkedOut:
-                type: "boolean"
-                example: false
-              sessionDuration:
-                type: "integer"
-                format: "int64"
-                example: 3996
-                description: "The session duration in seconds"
-              numberOfOperations:
-                type: "integer"
-                format: "int32"
-                example: 504
-                description: "The number of arm movements performed during the session"
+            $ref: "#/definitions/SessionStatus"
         403:
           description: "Cannot checkin due to incorrect token. Obtain a token using\
             \ /arm/checkout."
           schema:
             $ref: "#/definitions/Status"
       x-swagger-router-controller: "server.controllers.operation_controller"
-  /arm/operate:
+  /arm/{id}/operate:
     post:
       tags:
       - "Operation"
       description: "Operates the arm using a list of operations."
       operationId: "operate"
       parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+        description: "The id of the meArm." 
       - name: "token"
         in: "header"
         description: "Session token. This token should be obtained using /arm/checkout."
@@ -119,16 +137,7 @@ paths:
         200:
           description: "Successfully executed operations."
           schema:
-            type: "object"
-            properties:
-              numberOfMovements:                
-                type: "integer"
-                format: "int64"
-              duration:
-                type: "integer"
-                format: "int64"
-              position:
-                $ref: "#/definitions/Point"
+            $ref: "#/definitions/OperationStatus"
         403:
           description: "Cannot operate due to incorrect token. Obtain a token using /arm/checkout."
           schema:
@@ -212,7 +221,27 @@ definitions:
     type: "array"
     items:
       $ref: "#/definitions/Operation"
-  inline_response_200:
+  Environment:
+    type: "object"
+    properties:
+      numberOfControllers:
+        type: "number"
+        description: "The number of controllers driving meArms."
+      numberOfArms:
+        type: "number"
+        description: "The number of meArms in the environement."
+      arms:
+        type: "array"
+        items:
+          type: "string"
+    example:
+      numberOfControllers: 1
+      numberOfArms: 2
+      arms: [
+        "004902030405",
+        "004910111213"
+      ]
+  Token:
     properties:
       token:
         type: "string"
@@ -221,7 +250,7 @@ definitions:
         description: "Token to use for any operation in the session"
     example:
       token: "0729a580-2240-11e6-9eb5-0002a5d5c51b"
-  inline_response_200_1:
+  SessionStatus:
     properties:
       checkedOut:
         type: "boolean"
@@ -240,7 +269,7 @@ definitions:
       checkedOut: false
       numberOfOperations: 504
       sessionDuration: 3996
-  inline_response_200_2:
+  OperationStatus:
     properties:
       numberOfMovements:
         type: "integer"

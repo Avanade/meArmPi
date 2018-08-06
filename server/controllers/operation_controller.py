@@ -24,15 +24,16 @@ import uuid
 import datetime
 import connexion
 
-from server.models.inline_response200 import InlineResponse200  # noqa: E501
-from server.models.inline_response2001 import InlineResponse2001  # noqa: E501
-from server.models.inline_response2002 import InlineResponse2002  # noqa: E501
+from server.models.token import Token  # noqa: E501
+from server.models.session_status import SessionStatus  # noqa: E501
+from server.models.operations_status import OperationStatus  # noqa: E501
 from server.models.operations import Operations  # noqa: E501
 from server.models.operation import Operation  # noqa: E501
 from server.models.status import Status  # noqa: E501
 from server import common
+from arm import me_arm
 
-def checkin(): # noqa: E501
+def checkin(id): # noqa: E501
     # currently, header parameters will not be passed as arguments to controller
     # methods in connexion
     # http://connexion.readthedocs.io/en/latest/request.html#header-parameters
@@ -40,11 +41,16 @@ def checkin(): # noqa: E501
 
     Checks in the arm to complete the session and remove the lock # noqa: E501
 
+    :param id: The id of the meArm.
+    :type id: str
     :param token: Session token. This token should be obtained using /arm/checkout.
     :type token: dict | bytes
 
-    :rtype: InlineResponse2001
+    :rtype: SessionStatus
     """
+    if not id in me_arm.get_names():
+        return 'meArm with name %s is not known' % id, 400 
+
     if connexion.request.headers['token'] is None:
         return 'Missing header value "token"', 400
 
@@ -54,29 +60,34 @@ def checkin(): # noqa: E501
     except ValueError:
         return 'Invalid token format', 400
 
-    if token != common.Token:
-        return common.Status, 403
+    if token != common.token[id]:
+        return common.status[id], 403
 
-    ops = common.Status.movements_since_checkout
-    duration = (datetime.datetime.now() - common.Status.checked_out_since).total_seconds()
-    common.Status = Status(common.HOSTNAME, common.VERSION, False)
-    common.Token = None
-    return InlineResponse2001(False, duration, ops)
+    status= common.status[id]
+    ops = status.movements_since_checkout
+    duration = (datetime.datetime.now() - status.checked_out_since).total_seconds()
+    common.status[id] = Status(common.HOSTNAME, common.VERSION, False)
+    common.token[id] = None
+    return SessionStatus(False, duration, ops)
 
-
-def checkout():  # noqa: E501
+def checkout(id):  # noqa: E501
     """checkout
 
     Checks out the arm for a session. # noqa: E501
 
+    :param id: The id of the meArm.
+    :type id: str
 
-    :rtype: InlineResponse200
+    :rtype: Token
     """
-    if common.Token is not None:
-        return common.Status, 403
+    if not id in me_arm.get_names():
+        return 'meArm with name %s is not known' % id, 400 
 
-    common.Token = uuid.uuid4()
-    common.Status = Status(
+    if common.token[id] is not None:
+        return common.status[id], 403
+
+    common.token[id] = uuid.uuid4()
+    common.status[id] = Status(
         common.HOSTNAME,
         common.VERSION,
         True,
@@ -84,10 +95,10 @@ def checkout():  # noqa: E501
         0,
         None)
 
-    response = InlineResponse200(common.Token)
+    response = Token(common.token[id])
     return response
 
-def operate(operations):  # noqa: E501
+def operate(id, operations):  # noqa: E501
     # currently, header parameters will not be passed as arguments to controller
     # methods in connexion
     # http://connexion.readthedocs.io/en/latest/request.html#header-parameters
@@ -95,14 +106,20 @@ def operate(operations):  # noqa: E501
 
     Operates the arm using a list of operations. # noqa: E501
 
+    :param id: The id of the meArm.
+    :type id: str
     :param token: Session token. This token should be obtained using /arm/checkout.
     :type token: dict | bytes
     :param operations: A list of operations to be executed.
     :type operations: dict | bytes
 
-    :rtype: InlineResponse2002
+    :rtype: OperationStatus
     """
     t_start = datetime.datetime.now()
+
+    if not id in me_arm.get_names():
+        return 'meArm with name %s is not known' % id, 400 
+
     if connexion.request.headers['token'] is None:
         return 'Missing header value "token"', 400
 
@@ -112,8 +129,8 @@ def operate(operations):  # noqa: E501
     except ValueError:
         return 'Invalid token format', 400
 
-    if token != common.Token:
-        return common.Status, 403
+    if token != common.token[id]:
+        return common.status[id], 403
 
     count = 0
     try:
@@ -137,7 +154,7 @@ def operate(operations):  # noqa: E501
     except ValueError:
         return 'Incorrect operation type. Only moveTo, grab and release are supported', 400
 
-    return InlineResponse2002(
+    return OperationStatus(
         count,
         (datetime.datetime.now() - t_start).total_seconds(),
-        common.Status.position)
+        common.status[id].position)

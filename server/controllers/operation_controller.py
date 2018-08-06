@@ -153,6 +153,7 @@ def operate(id, operations):  # noqa: E501
                     num_ops += 1
                 elif val.type == 'test':
                     arm.test()
+                    num_ops += 1
                 else:
                     raise ValueError(Operation)
     except ValueError:

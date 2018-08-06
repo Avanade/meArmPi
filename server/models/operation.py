@@ -66,7 +66,7 @@ class Operation(Model):
         :param type: The type of this Operation.
         :type type: str
         """
-        allowed_values = ["moveTo", "grab", "release"]  # noqa: E501
+        allowed_values = ["moveTo", "grab", "release", "test"]  # noqa: E501
         if type not in allowed_values:
             raise ValueError(
                 "Invalid value for `type` ({0}), must be one of {1}"

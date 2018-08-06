@@ -144,7 +144,7 @@ def operate(id, operations):  # noqa: E501
                 count += 1
                 if val.type == 'moveTo':
                     target = val.target
-                    arm.go_to_point(target, 1, False)
+                    num_ops += arm.go_to_point(target, 1, False)
                 elif val.type == 'grab':
                     arm.close()
                     num_ops += 1
@@ -152,8 +152,7 @@ def operate(id, operations):  # noqa: E501
                     arm.open()
                     num_ops += 1
                 elif val.type == 'test':
-                    arm.test()
-                    num_ops += 1
+                    num_ops += arm.test(False)
                 else:
                     raise ValueError(Operation)
     except ValueError:

@@ -444,42 +444,64 @@ class me_arm(object):
         self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
         time.sleep(0.3)
 
-    def test(self):
-        """Simple loop to test the arm"""
-        self._logger.info('Press Ctrl-C to quit...')
+    def test(self, repeat: bool = False) -> int:
+        """Simple loop to test the arm
+        
+        :param repeat: If True repeat the test routine until interupted.
+        :type repeat: bool
+
+        :return: Number of operations executed
+        :rtype: int
+        """
+        if repeat: self._logger.info('Press Ctrl-C to quit...')
         self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
         self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle)
         self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle)
         self.close()
-        while True:     
+        ops = 0
+        keep_going = True
+        while keep_going:     
             while self._elbow_angle < self._elbow_servo.max:
                 self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle)
                 self._elbow_angle += me_arm._inc
+                ops += 1
 
             while self._shoulder_angle > self._shoulder_servo.min:
                 self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle)
                 self._shoulder_angle -= me_arm._inc
+                ops += 1
 
             self.close()
+            ops += 1
 
             while self._hip_angle > self._hip_servo.min:
                 self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
                 self._hip_angle -= me_arm._inc
+                ops += 1
 
             while self._shoulder_angle < self._shoulder_servo.max:
                 self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle)
                 self._shoulder_angle += me_arm._inc
+                ops += 1
 
             while self._elbow_angle > self._elbow_servo.min:
                 self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle)
                 self._elbow_angle -= me_arm._inc
+                ops += 1
 
             while self._hip_angle < self._hip_servo.max:
                 self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
                 self._hip_angle += me_arm._inc
+                ops += 1
 
             self.open()
-
+            ops += 1
+            
             while self._hip_angle > self._hip_servo.neutral:
                 self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
                 self._hip_angle -= me_arm._inc
+                ops += 1
+            
+            if not repeat: keep_going = False
+        
+        return ops

@@ -351,7 +351,7 @@ class me_arm(object):
         if elbow < self._elbow_servo.min or elbow > self._elbow_servo.max: isReachable = False
         return isReachable, hip, shoulder, elbow
 
-    def go_directly_to_point(self, target: Point):
+    def go_directly_to_point(self, target: Point, raiseOutOfBoundsException: bool = True) -> bool:
         """go_directly_to_point
         
         Set servo angles so as to place the gripper at a given Cartesian point as quickly as possible, 
@@ -359,13 +359,19 @@ class me_arm(object):
         
         :param target: The target point of the operation
         :type target: Point
-        """
+        :param raiseOutOfBoundsException: True to raise an outOfBoundsException if target is not reachable.
+        :type raiseOutOfBoundsException: bool
 
+        :return: True if the operation was executed. False otherwise. False will be returned if the 
+                 target is considered unreachable by the arm.
+        :rtype: bool
+        """
         is_reachable, hip, shoulder, elbow = self.is_reachable(target)
         if not is_reachable:
             msg = "Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z)
             self._logger.error(msg)
-            raise Exception(msg)       
+            if raiseOutOfBoundsException: raise Exception(msg)
+            return False       
 
         self._controller.set_servo_angle(self._hip_servo.channel, hip)
         self._controller.set_servo_angle(self._shoulder_servo.channel, shoulder)
@@ -375,6 +381,7 @@ class me_arm(object):
         self._shoulder_angle = shoulder
         self._elbow_angle = elbow
         self._logger("Goto point x: %d, y: %d, z: %d", target.x, target.y, target.z)
+        return True
 
     def go_to_point(self, target: Point, resolution: int = 10) -> int:
         """go_to_point
@@ -401,10 +408,11 @@ class me_arm(object):
                 self.position.x + (target.x - self.position.x) * i / dist, 
                 self.position.y + (target.y - self.position.y) * i / dist, 
                 self.position.z + (target.z - self.position.z) * i / dist)
-            self.go_directly_to_point(p)
-            time.sleep(0.05)
             i += resolution
-            c += 1
+            if self.go_directly_to_point(p):
+                c += 1
+                time.sleep(0.05)
+
         self.go_directly_to_point(target)
         time.sleep(0.05)
         return c

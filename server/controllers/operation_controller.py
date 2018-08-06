@@ -138,17 +138,21 @@ def operate(id, operations):  # noqa: E501
             operations = Operations.from_dict(connexion.request.get_json())  # noqa: E501
             if len(operations) > 10:
                 return 'Too many operations. Reduce the number of operations to 10 or less', 413
+            arm = me_arm.get(id)
+            num_ops = 0
             for i, val in enumerate(operations):
                 count += 1
                 if val.type == 'moveTo':
-                    # do nothing
-                    print(val.type)
+                    target = val.target
+                    arm.go_to_point(target, 1, False)
                 elif val.type == 'grab':
-                    # do nothing
-                    print(val.type)
+                    arm.close()
+                    num_ops += 1
                 elif val.type == 'release':
-                    # do nothing
-                    print(val.type)
+                    arm.open()
+                    num_ops += 1
+                elif val.type == 'test':
+                    arm.test()
                 else:
                     raise ValueError(Operation)
     except ValueError:

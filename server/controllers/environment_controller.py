@@ -33,6 +33,6 @@ def get_environment() -> Environment:  # noqa: E501
 
     :rtype: Environment
     """
-    arms = me_arm.get_names()
+    arms = list(me_arm.get_names())
     controllers = me_arm.get_controllers()
-    return Environment(controllers, len(arms), arms)
+    return Environment(len(controllers), len(arms), arms)

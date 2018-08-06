@@ -130,6 +130,7 @@ class PCA9685(object):
         self._device.write8(MODE1, mode)
         time.sleep(0.005)  # wait for oscillator
         self.set_pwm_freq(self._servo_frequency)
+        logger.info("Registered controller on address %d" % address)
 
     @classmethod
     def from_json_file(cls, json_file:str):

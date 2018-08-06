@@ -22,8 +22,11 @@
 #
 """meArm REST API main module"""
 import connexion
+import logging
 from server import encoder
 from server import common
+
+logging.basicConfig(level=logging.INFO)
 
 def main():
     app = connexion.App(__name__, specification_dir='./swagger/')

@@ -115,7 +115,7 @@ class me_arm(object):
 
         if initialize: self.initialize()
         me_arm._instances[self._id] = self
-        if not controller.address in me_arm._controllers: me_arm._controllers.append(controller.address)
+        if controller.address not in me_arm._controllers: me_arm._controllers.append(controller.address)
         self._logger.info("meArm with id %s created", self._id)
     
     def __setup_defaults(self, hip_channel: int, elbow_channel: int, shoulder_channel: int, gripper_channel: int):

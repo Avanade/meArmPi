@@ -48,7 +48,7 @@ def checkin(id): # noqa: E501
 
     :rtype: SessionStatus
     """
-    if not id in me_arm.get_names():
+    if id not in me_arm.get_names():
         return 'meArm with name %s is not known' % id, 400 
 
     if connexion.request.headers['token'] is None:
@@ -80,7 +80,7 @@ def checkout(id):  # noqa: E501
 
     :rtype: Token
     """
-    if not id in me_arm.get_names():
+    if id not in me_arm.get_names():
         return 'meArm with name %s is not known' % id, 400 
 
     if common.token[id] is not None:
@@ -117,7 +117,7 @@ def operate(id, operations):  # noqa: E501
     """
     t_start = datetime.datetime.now()
 
-    if not id in me_arm.get_names():
+    if id not in me_arm.get_names():
         return 'meArm with name %s is not known' % id, 400 
 
     if connexion.request.headers['token'] is None:

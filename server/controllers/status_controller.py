@@ -22,6 +22,7 @@
 """Status controller for the RPI meArm REST interface."""
 from server.models.point import Point as PointModel  # noqa: E501
 from server import common
+from arm import me_arm
 
 def get_arm(id):  # noqa: E501
     """get_arm
@@ -32,6 +33,9 @@ def get_arm(id):  # noqa: E501
 
     :rtype: Status
     """
+    if id not in me_arm.get_names():
+        return 'meArm with name %s is not known' % id, 400 
+
     status = common.status[id]
     return status.to_dict()
 
@@ -44,6 +48,10 @@ def get_position(id):  # noqa: E501
 
     :rtype: Point
     """
+
+    if id not in me_arm.get_names():
+        return 'meArm with name %s is not known' % id, 400 
+
     status = common.status[id]
     if status.position is None:
         return PointModel(0, 0, 0, 0, 0, 0).to_dict()

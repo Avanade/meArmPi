@@ -93,8 +93,8 @@
                     "type": "ES08MAII",
                     "range": {
                         "neutral": -0.0,
-                        "max": 27.5,
-                        "min": -20.0
+                        "max": 36.5,
+                        "min": -25.0
                     }
                 }
             }

@@ -30,6 +30,7 @@ from kinematics import Kinematics, Point
 from .arm_servo_attributes import me_armServo
 from .arm_attributes import me_armAttributes
 from .schemas import me_arm_schema, arm_servo_schema, schema_store
+from pprint import pprint
 
 class me_arm(object):
     """Control meArm"""
@@ -314,7 +315,7 @@ class me_arm(object):
         :return: The current gripper position
         :rtype: Point
         """
-        return self.position
+        return self._position
 
     def delete(self):
         """delete
@@ -376,44 +377,51 @@ class me_arm(object):
         self._controller.set_servo_angle(self._hip_servo.channel, hip)
         self._controller.set_servo_angle(self._shoulder_servo.channel, shoulder)
         self._controller.set_servo_angle(self._elbow_servo.channel, elbow)
-        self.position = target
+        self._position = target
         self._hip_angle = hip
         self._shoulder_angle = shoulder
         self._elbow_angle = elbow
-        self._logger("Goto point x: %d, y: %d, z: %d", target.x, target.y, target.z)
+        self._logger.info("Goto point x: %d, y: %d, z: %d", target.x, target.y, target.z)
         return True
 
-    def go_to_point(self, target: Point, resolution: int = 10) -> int:
+    def go_to_point(self, target: Point, resolution: int = 10, raiseOutOfBoundsException: bool = True) -> int:
         """go_to_point
         
         Travel in a straight line from current position to a requested position
         
         :param target: The target point of the operation
         :type target: Point
-
         :param resolution: The increment for each movement along the path.
         :type resolution: int
+        :param raiseOutOfBoundsException: True to raise an outOfBoundsException if target is not reachable.
+        :type raiseOutOfBoundsException: bool
 
         :return: The number of movements executed
         :rtype: int       
         """
-        if not self.is_reachable(target)[0]:
-            raise Exception("Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z))
+        # if not self.is_reachable(target)[0]:
+        #    if raiseOutOfBoundsException:
+        #        raise Exception("Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z))
+        #    else:
+        #        return 0
         
-        dist = self.position.distance(target)
+        pprint(target.toDict())
+        pprint(self._position.toDict())
+        dist = self._position.distance(target)
+        pprint(dist)
         i = 0
         c = 1
         while i < dist:
             p = Point.fromCartesian(
-                self.position.x + (target.x - self.position.x) * i / dist, 
-                self.position.y + (target.y - self.position.y) * i / dist, 
-                self.position.z + (target.z - self.position.z) * i / dist)
+                self._position.x + (target.x - self._position.x) * i / dist, 
+                self._position.y + (target.y - self._position.y) * i / dist, 
+                self._position.z + (target.z - self._position.z) * i / dist)
             i += resolution
-            if self.go_directly_to_point(p):
+            if self.go_directly_to_point(p, raiseOutOfBoundsException):
                 c += 1
                 time.sleep(0.05)
 
-        self.go_directly_to_point(target)
+        self.go_directly_to_point(target, raiseOutOfBoundsException)
         time.sleep(0.05)
         return c
 

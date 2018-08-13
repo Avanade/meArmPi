@@ -32,6 +32,7 @@ from server.models.operation import Operation  # noqa: E501
 from server.models.status import Status  # noqa: E501
 from server import common
 from arm import me_arm
+from kinematics import Point
 
 def checkin(id): # noqa: E501
     # currently, header parameters will not be passed as arguments to controller
@@ -129,8 +130,8 @@ def operate(id, operations):  # noqa: E501
     except ValueError:
         return 'Invalid token format', 400
 
-    if token != common.token[id]:
-        return common.status[id], 403
+    #if token != common.token[id]:
+    #    return common.status[id], 403
 
     count = 0
     try:
@@ -143,7 +144,7 @@ def operate(id, operations):  # noqa: E501
             for i, val in enumerate(operations):
                 count += 1
                 if val.type == 'moveTo':
-                    target = val.target
+                    target = Point.fromCartesian(val.target.x, val.target.y, val.target.z)
                     num_ops += arm.go_to_point(target, 1, False)
                 elif val.type == 'grab':
                     arm.close()

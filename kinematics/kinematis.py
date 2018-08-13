@@ -82,6 +82,17 @@ class Point(object):
         dz = self.z - p.z
         return math.sqrt(dx*dx + dy*dy + dz*dz)
 
+    def toDict(self) -> {}:
+        """Returns the object as a dictionary object"""
+        r = {}
+        r["lat"] = self.lat
+        r["lng"] = self.lng
+        r["r"] = self.r
+        r["x"] = self.x
+        r["y"] = self.y
+        r["z"] = self.z
+        return r
+
 class Kinematics(object):
     """Determine cartesians from angles and vice versa."""
 

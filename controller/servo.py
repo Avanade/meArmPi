@@ -137,7 +137,7 @@ class Servo(object):
         """
 
         if angle < self._attributes.min_angle or angle > self._attributes.max_angle:
-            raise Exception('Angle %d out of range. Must be between %d and %d' %
+            raise Exception('Angle %f out of range. Must be between %f and %f' %
                             (angle, self._attributes.min_angle, self._attributes.max_angle))
 
         pulse = self._attributes.neutral_pulse
@@ -147,7 +147,7 @@ class Servo(object):
         elif angle < self._attributes.neutral_angle:
             pulse -= ((angle + self._attributes.neutral_angle) * (self._attributes.neutral_pulse - self._attributes.min_pulse)) / \
                 (self._attributes.min_angle + self._attributes.neutral_angle)
-        self._logger.info('Angle %d -> pulse %f', angle, pulse)
+        self._logger.info('Angle %f -> pulse %f', angle, pulse)
         return self._calculate_servo_ticks_from_pulse(pulse), pulse
 
     def set_pulse(self, pulse: float):

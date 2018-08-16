@@ -69,6 +69,13 @@ def checkin(id): # noqa: E501
     duration = (datetime.datetime.now() - status.checked_out_since).total_seconds()
     common.status[id] = Status(common.HOSTNAME, common.VERSION, False)
     common.token[id] = None
+    arm = me_arm.get(id)
+    arm.reset()
+
+    #if no other arms on the controller are checked out, shutdown the controller....
+    shouldShutdown = all(v is None for v in common.token.values())
+    if shouldShutdown: me_arm.shutdown()
+
     return SessionStatus(False, duration, ops)
 
 def checkout(id):  # noqa: E501

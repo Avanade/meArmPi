@@ -443,7 +443,7 @@ class me_arm(object):
         time.sleep(0.3)
 
     def reset(self):
-        """shutdown
+        """reset
         Resets the arm at neutral position"""
         self._logger.info('Resetting arm %s...', self._id)
         self._controller.set_servo_angle(self._hip_servo.channel, self._hip_servo.neutral)

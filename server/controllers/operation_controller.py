@@ -137,8 +137,8 @@ def operate(id, operations):  # noqa: E501
     except ValueError:
         return 'Invalid token format', 400
 
-    #if token != common.token[id]:
-    #    return common.status[id], 403
+    if token != common.token[id]:
+        return common.status[id], 403
 
     count = 0
     try:

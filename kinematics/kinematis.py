@@ -111,14 +111,14 @@ class Kinematics(object):
     def calculateAngle(self, leg1: float, leg2: float,  opp: float) -> float:
         """
             Calculates the angle between two legs based on trigonometry:
-            c^2 = a^2 + b^2 - 2ab * cos(alpha) => alpha = acos((c^2 - a^2 - b^2)/2ab)
+            c^2 = a^2 + b^2 - 2ab * cos(alpha) => alpha = acos((a^2 + b^2 - c^2)/2ab)
             Arguments:
                 leg1:   length of leg one
                 leg2:   length of leg two
                 opp:    length of opposing side
         """
         if leg1 == 0 or leg2 == 0: return 0
-        c = ((opp*opp + leg1*leg1 - leg2*leg2) * 1.0)/(2 * leg1 * leg2 * 1.0) 
+        c = ((leg1*leg1 + leg2*leg2 - opp*opp) * 1.0)/(2.0 * leg1 * leg2) 
         if c > 1 or c < -1:
             raise Exception("Arguments %f, %f and %f do not appear to constitute a valid triangle..." % (leg1, leg2, opp))
         alpha = math.acos(c)

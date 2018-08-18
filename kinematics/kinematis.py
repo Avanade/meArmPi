@@ -96,40 +96,57 @@ class Point(object):
 class Kinematics(object):
     """Determine cartesians from angles and vice versa."""
 
-    def __init__(self, shoulderToElbow=80, elbowToWrist=80, wristToHand=60):
+    def __init__(self, useRadians:bool = False, shoulderToElbow:float = 80.0, elbowToWrist:float = 80.0, wristToHand:float = 60.0):
         """
-            Initializes the object for the desired geometry
-            Arguments:
-                shoulderToElbow:    length from the shoulder joint to the elbow joint in mm
-                elbowToWrist:       lenght from eblow joint to wrist in mm
-                wristToHand:        lenght from wrist to gripper in mm
+        Initializes the object for the desired geometry
+            
+        :param useRadians:      True to express angles in radians, false otherwise
+        :type useRadias:        bool
+        :param shoulderToElbow: Length from the shoulder joint to the elbow joint in mm
+        :type sholderToElbow:   float
+        :param elbowToWrist:    Lenght from eblow joint to wrist in mm
+        :type elbowToWrist:     float 
+        :param wristToHand:     Lenght from wrist to gripper in mm
+        :type wristToHand:      float
         """
-        self.shoulderToElbow = shoulderToElbow
-        self.elbowToWrist = elbowToWrist
-        self.wristToHand = wristToHand
+        self._useRadians = useRadians
+        self._shoulderToElbow = shoulderToElbow
+        self._elbowToWrist = elbowToWrist
+        self._wristToHand = wristToHand
 
     def calculateAngle(self, leg1: float, leg2: float,  opp: float) -> float:
         """
-            Calculates the angle between two legs based on trigonometry:
-            c^2 = a^2 + b^2 - 2ab * cos(alpha) => alpha = acos((a^2 + b^2 - c^2)/2ab)
-            Arguments:
-                leg1:   length of leg one
-                leg2:   length of leg two
-                opp:    length of opposing side
+        Calculates the angle between two legs based on trigonometry:
+        c^2 = a^2 + b^2 - 2ab * cos(alpha) => alpha = acos((a^2 + b^2 - c^2)/2ab)
+            
+        :param leg1:    Length of leg one
+        :type leg1:     float
+        :param leg2:    Length of leg two
+        :type leg2:     float
+        :param opp:     Length of opposing side
+        :type opp:      float
+        :return:        The angle between the legs
+        :rtype:         float
         """
         if leg1 == 0 or leg2 == 0: return 0
         c = ((leg1*leg1 + leg2*leg2 - opp*opp) * 1.0)/(2.0 * leg1 * leg2) 
         if c > 1 or c < -1:
             raise Exception("Arguments %f, %f and %f do not appear to constitute a valid triangle..." % (leg1, leg2, opp))
         alpha = math.acos(c)
+        if self._useRadians == False:
+            alpha = math.degrees(alpha)
         return alpha
 
     def cart2polar(self, x: float, y: float) -> (float, float):
         """
-            Convert cartesian to polar coordinates
-            Arguments:
-                x:  x coordinate in mm
-                y:  y coordinate in mm        
+        Convert cartesian to polar coordinates
+            
+        :param x:   x coordinate in mm
+        :type x:    float
+        :param y:   y coordinate in mm
+        :type y:    float
+        :return:    Polar coordinates
+        :rtype:     (float, float)        
         """
         r = math.hypot(x *1.0, y * 1.0)        # get the radius
         if(r == 0): return 0.0, 0.0
@@ -138,38 +155,61 @@ class Kinematics(object):
         s = y / r                              # r = y * sin(alpha)
         alpha = math.acos(c)                   # angle between 0 and pi
         if s < 0: alpha = -alpha
+        if self._useRadians == False:
+            alpha = math.degrees(alpha) 
         return r, alpha
 
     def distance(self, p1: Point, p2: Point) -> float:
-        """ Returns the distance between two points in space """
+        """ 
+        Returns the distance between two points in space 
+        
+        :param p1:  The firt point
+        :type p1:   Point
+        :param p2:  The second point
+        :type p2:   Point
+        :return:    The distance between p1 and p2
+        :rtype:     float
+        """
         return p2.distance(p1)
 
     def polar2cart(self, r:float, alpha:float) -> (float, float):
         """
-            Converts polar coordinates to cartesians
-            Arguments:
-                r:      Radius in mm (magnitude)
-                alpha:  Angle in degrees (bearing)
-
+        Converts polar coordinates to cartesians
+        
+        :param r:       Radius in mm (magnitude)
+        :type r:        float
+        :param alpha:   Angle in degrees or radians (depending on construction)(bearing)
+        :type alpha:    float
+        :return:        Cartesian coordinates
+        :rtype:         (float, float)
         """
-        x = r * math.cos(alpha)
-        y = r * math.sin(alpha)
+        alphaPrime = alpha
+        if self._useRadians == False:
+            alphaPrime = math.radians(alpha)
+        x = r * math.cos(alphaPrime)
+        y = r * math.sin(alphaPrime)
         return x, y
 
     def toCartesian(self, a0: float, a1: float, a2: float) -> (float, float, float):
         """
-            Calculates the cartesian coordinates of the arm (claw point) based on the given servo angles
-            Argumants:
-                a0:     Hip angle
-                a1:     Shoulder angle
-                a2:     Elbow angle 
+        Calculates the cartesian coordinates of the arm (claw point) based on the given servo angles
+        
+        :param a0:      Hip angle
+        :type a0:       float
+        :param a1:      Shoulder angle
+        :type a1:       float
+        :param a2:      Elbow angle
+        :type a2:       float
+        :return:        Cartesian coordinates of the arm based on the servo angles
+        :rtype:         (float, float, float) 
         """
+
         # Calculate u,v coordinates for arm
-        u01, v01 = self.polar2cart(self.shoulderToElbow, a1)
-        u12, v12 = self.polar2cart(self.elbowToWrist, a2)
+        u01, v01 = self.polar2cart(self._shoulderToElbow, a1)
+        u12, v12 = self.polar2cart(self._elbowToWrist, a2)
         
         # Add vectors
-        u = u01 + u12 + self.wristToHand
+        u = u01 + u12 + self._wristToHand
         v = v01 + v12
         
         # Calculate in 3D space - note x/y reversal!
@@ -179,25 +219,34 @@ class Kinematics(object):
 
     def fromCartesian(self, x: float, y: float, z: float) -> (float, float, float):
         """
-            Calculates the servo actuation angles requires to position the claw at a certain cartesian coordinate
-            Argumants:
-                x:     x - coordiante to be achieved
-                y:     y - coordinate to be achieved
-                z:     z - coordinate to be achieved
+        Calculates the servo actuation angles requires to position the claw at a certain cartesian coordinate
+        
+        :param x:   x - coordiante to be achieved
+        :type x:    float
+        :param y:   y - coordinate to be achieved
+        :type y:    float
+        :param z:   z - coordinate to be achieved
+        :type z:    float
+        :return:    Servo actuation angles to achieve desired coordinates
+        :rtype:     (float, float, float)
         """
+        _pi = math.pi
+        if self._useRadians == False:
+                _pi = 180
+
         # Solve top-down view, hip servo
         r, a0 = self.cart2polar(y, x)
 
         # In arm plane, convert to polar
-        r -= self.wristToHand               # Account for the wrist length
+        r -= self._wristToHand               # Account for the wrist length
         r1, theta = self.cart2polar(r, z)
         
         # Solve arm inner angles as required
-        b = self.calculateAngle(self.elbowToWrist, self.shoulderToElbow, r1)
-        c = self.calculateAngle(r1, self.shoulderToElbow, self.elbowToWrist)
+        b = self.calculateAngle(self._elbowToWrist, self._shoulderToElbow, r1)
+        c = self.calculateAngle(r1, self._shoulderToElbow, self._elbowToWrist)
         
         # Solve for servo angles from horizontal
         a1 = theta + b
-        a2 = c + a1 - math.pi
+        a2 = c + a1 - _pi
         
         return a0, a1, a2   

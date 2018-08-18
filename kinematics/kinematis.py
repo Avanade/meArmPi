@@ -31,7 +31,7 @@ class Point(object):
     Represents a point in space
     """
     
-    def __init(self, useRadians:bool = False):
+    def __init(self, useRadians: bool = False):
         """
         Initializes the object
         
@@ -47,7 +47,7 @@ class Point(object):
         self._useRadians = useRadians
 
     @classmethod
-    def fromCartesian(cls, x: float, y: float, z: float, useRadians:bool = False) -> "Point":
+    def fromCartesian(cls, x: float, y: float, z: float, useRadians: bool = False) -> "Point":
         """
         Generates a point based on cartesian coordinates
         
@@ -63,7 +63,8 @@ class Point(object):
         :return:    A Point object
         :rtype:     Point
         """
-        p = cls(useRadians)
+        p = cls()
+        p._useRadians = useRadians
         p.x = x
         p.y = y
         p.z = z
@@ -77,7 +78,7 @@ class Point(object):
         return p
 
     @classmethod
-    def fromPolar(cls, r: float, lng: float, lat: float, useRadians:bool = False) -> "Point":
+    def fromPolar(cls, r: float, lng: float, lat: float, useRadians: bool = False) -> "Point":
         """
         Generates a point based on polar coordinates
         
@@ -99,7 +100,8 @@ class Point(object):
             latPrime = math.radians(lat)
             lngPrime = math.radians(lng)
 
-        p = cls(useRadians)
+        p = cls()
+        p._useRadians = useRadians
         p.r = r
         p.lng = latPrime
         p.lat = lngPrime
@@ -139,7 +141,7 @@ class Point(object):
 class Kinematics(object):
     """Determine cartesians from angles and vice versa."""
 
-    def __init__(self, useRadians:bool = False, shoulderToElbow:float = 80.0, elbowToWrist:float = 80.0, wristToHand:float = 60.0):
+    def __init__(self, useRadians: bool = False, shoulderToElbow: float = 80.0, elbowToWrist: float = 80.0, wristToHand: float = 60.0):
         """
         Initializes the object for the desired geometry
             
@@ -215,7 +217,7 @@ class Kinematics(object):
         """
         return p2.distance(p1)
 
-    def polar2cart(self, r:float, alpha:float) -> (float, float):
+    def polar2cart(self, r: float, alpha: float) -> (float, float):
         """
         Converts polar coordinates to cartesians
         

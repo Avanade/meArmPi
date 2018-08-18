@@ -72,9 +72,9 @@ def checkin(id): # noqa: E501
     arm = me_arm.get(id)
     arm.reset()
 
-    #if no other arms on the controller are checked out, shutdown the controller....
+    #if no other arms on the controller are checked out, reset the controller....
     shouldShutdown = all(v is None for v in common.token.values())
-    if shouldShutdown: me_arm.shutdown()
+    if shouldShutdown: me_arm.shutdown(False)
 
     return SessionStatus(False, duration, ops)
 
@@ -148,7 +148,7 @@ def operate(id, operations):  # noqa: E501
                 return 'Too many operations. Reduce the number of operations to 10 or less', 413
             arm = me_arm.get(id)
             num_ops = 0
-            for i, val in enumerate(operations):
+            for dummy, val in enumerate(operations):
                 count += 1
                 if val.type == 'moveTo':
                     target = Point.fromCartesian(val.target.x, val.target.y, val.target.z)

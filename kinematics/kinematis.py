@@ -27,27 +27,43 @@ import math
 
 
 class Point(object):
-    """Represents a point in space"""
+    """
+    Represents a point in space
+    """
     
-    def __init(self):
-        """Initializes the object"""
+    def __init(self, useRadians:bool = False):
+        """
+        Initializes the object
+        
+        :param useRadians:      True to express angles in radians, false otherwise
+        :type useRadias:        bool
+        """
         self.x = 0
         self.y = 0
         self.z = 0
         self.r = 0
         self.lng = 0
         self.lat = 0
+        self._useRadians = useRadians
 
     @classmethod
-    def fromCartesian(cls, x: float, y: float, z: float):
+    def fromCartesian(cls, x: float, y: float, z: float, useRadians:bool = False) -> "Point":
         """
-            Generates a point based on cartesian coordinates
-            Arguments:
-                x   -   x - coordinate
-                y   -   y - coordinate
-                z   -   z - coordinate
+        Generates a point based on cartesian coordinates
+        
+        :param x:   x - coordinate
+        :type x:    float
+        :param y:   y - coordinate
+        :type y:    float
+        :param z:   z - coordinate
+        :type z:    float
+        :param useRadians:      True to express angles in radians, false otherwise
+        :type useRadias:        bool
+
+        :return:    A Point object
+        :rtype:     Point
         """
-        p = cls()
+        p = cls(useRadians)
         p.x = x
         p.y = y
         p.z = z
@@ -55,35 +71,62 @@ class Point(object):
         p.lat = math.acos(z / p.r)
         p.lng = math.acos(x / math.sqrt(x*x*1.0 +y*y*1.0))
         if y < 0: p.lng = -p.lng
+        if useRadians == False:
+            p.lat = math.degrees(p.lat)
+            p.lng = math.degrees(p.lng)
         return p
 
     @classmethod
-    def fromPolar(cls, r: float, lng: float, lat: float):
+    def fromPolar(cls, r: float, lng: float, lat: float, useRadians:bool = False) -> "Point":
         """
-            Generates a point based on polar coordinates
-            Arguments:
-                r   -   radius (magnitude)
-                lng -   longitude (inclination)
-                lat -   latitude (declination)
+        Generates a point based on polar coordinates
+        
+        :param r:   radius (magnitude)
+        :type r:    float
+        :param lng: longitude (inclination)
+        :type lng:  float
+        :param lat: latitude (declination)
+        :type lat:  float
+        :param useRadians:      True to express angles in radians, false otherwise
+        :type useRadias:        bool
+
+        :return:    A Point object
+        :rtype:     Point
         """
-        p = cls()
+        latPrime = lat
+        lngPrime = lng
+        if useRadians == False:
+            latPrime = math.radians(lat)
+            lngPrime = math.radians(lng)
+
+        p = cls(useRadians)
         p.r = r
-        p.lng = lng
-        p.lat = lat
-        p.x = r * math.sin(lat) * math.cos(lng)
-        p.y = r * math.sin(lat) * math.sin(lng)
-        p.z = r * math.cos(lat)
+        p.lng = latPrime
+        p.lat = lngPrime
+        p.x = r * math.sin(latPrime) * math.cos(lngPrime)
+        p.y = r * math.sin(latPrime) * math.sin(lngPrime)
+        p.z = r * math.cos(latPrime)
         return p
 
     def distance(self, p) -> float:
-        """ Returns the distance between this and another point"""
+        """ 
+        Returns the distance between this and another point
+        :param p:   Point to generate distance from
+        :type p:    Point
+        :return:    The distance from p
+        :rtype:     float
+        """
         dx = self.x - p.x
         dy = self.y - p.y
         dz = self.z - p.z
         return math.sqrt(dx*dx + dy*dy + dz*dz)
 
     def toDict(self) -> {}:
-        """Returns the object as a dictionary object"""
+        """
+        Returns the object as a dictionary object
+        :return:    Dictionary representation of the point
+        :rtype:     dict
+        """
         r = {}
         r["lat"] = self.lat
         r["lng"] = self.lng

@@ -244,15 +244,18 @@ class me_arm(object):
         return obj
 
     @classmethod
-    def shutdown(cls):
+    def shutdown(cls, clear:bool = False):
         """shutdown
         Deletes all meArms currently registered and shutsdown environment
+        :param clear:   True to remove all arm registrations. Will require complete re-initialization
+                        of the infrastructure to operate the arms again. 
+        :type clear:    bool
         """
         arm: cls = None
         for key in cls._instances.keys():
             arm = cls._instances[key]
             arm.reset()
-        cls._instances.clear()
+        if clear: cls._instances.clear()
         software_reset()
 
     @classmethod

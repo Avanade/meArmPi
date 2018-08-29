@@ -477,12 +477,12 @@ class me_arm(object):
         ops = 0
         keep_going = True
         while keep_going:     
-            while self._elbow_angle < self._elbow_servo.max:
+            while self._elbow_angle - self._elbow_servo.trim < self._elbow_servo.max:
                 self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle - self._elbow_servo.trim)
                 self._elbow_angle += me_arm._inc
                 ops += 1
 
-            while self._shoulder_angle > self._shoulder_servo.min:
+            while self._shoulder_angle - self._shoulder_servo.trim > self._shoulder_servo.min:
                 self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle - self._shoulder_servo.trim)
                 self._shoulder_angle -= me_arm._inc
                 ops += 1
@@ -490,22 +490,22 @@ class me_arm(object):
             self.close()
             ops += 1
 
-            while self._hip_angle > self._hip_servo.min:
+            while self._hip_angle - self._hip_servo.trim > self._hip_servo.min:
                 self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
                 self._hip_angle -= me_arm._inc
                 ops += 1
 
-            while self._shoulder_angle < self._shoulder_servo.max:
+            while self._shoulder_angle - self._shoulder_servo.trim < self._shoulder_servo.max:
                 self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle - self._shoulder_servo.trim)
                 self._shoulder_angle += me_arm._inc
                 ops += 1
 
-            while self._elbow_angle > self._elbow_servo.min:
+            while self._elbow_angle - self._elbow_servo.trim > self._elbow_servo.min:
                 self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle - self._elbow_servo.trim)
                 self._elbow_angle -= me_arm._inc
                 ops += 1
 
-            while self._hip_angle < self._hip_servo.max:
+            while self._hip_angle - self._hip_servo.trim < self._hip_servo.max:
                 self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
                 self._hip_angle += me_arm._inc
                 ops += 1
@@ -513,7 +513,7 @@ class me_arm(object):
             self.open()
             ops += 1
             
-            while self._hip_angle > self._hip_servo.neutral:
+            while self._hip_angle - self._hip_servo.trim > self._hip_servo.neutral:
                 self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
                 self._hip_angle -= me_arm._inc
                 ops += 1

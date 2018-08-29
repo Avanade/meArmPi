@@ -31,13 +31,14 @@ arm_servo_schema = {
     "definitions": {
         "arm_servo": {
             "type": "object",
-            "properties" : {
-                "channel" : {"type" : "number"},
-                "type": { "type" : "string", "enum": ["custom", "SG-90", "ES08MAII"]},
-                "attributes" : {"ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/servo_attributes"},
-                "range": { "ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/range"}
+            "properties": {
+                "channel": {"type": "number"},
+                "type": { "type": "string", "enum": ["custom", "SG-90", "ES08MAII"]},
+                "attributes": {"ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/servo_attributes"},
+                "range": { "ref": "http://theRealThor.com/meArm.servo-attributes.schema.json/#/definitions/range"},
+                "trim": {"type": "number"}
             },
-            "required": [ "channel", "type", "range"]
+            "required": [ "channel", "type", "range", "trim"]
         }
     },
     "allOf": [
@@ -63,6 +64,19 @@ me_arm_schema = {
                         "gripper": { "$ref": "http://theRealThor.com/meArm.arm-servo.schema.json/#/definitions/arm_servo"}
                     },
                     "required": ["hip", "elbow", "shoulder", "gripper"]
+                },
+                "kinematics": {
+                    "type": "object",
+                    "properties": {
+                        "humerus": {"type": "number"},
+                        "radius": {"type": "number"},     
+                        "phalanx":  {"type": "number"},
+                        "clavicle": {"type": "number"},
+                        "x-plane-offset": {"type": "number"},
+                        "y-plane-offset": {"type": "number"},
+                        "z-plane-offset": {"type": "number"}
+                    },
+                    "required": ["humerus", "radius", "phalanx", "clavicle", "x-plane-offset", "y-plane-offset", "z-plane-offset"]
                 }
             },
             "required": ["angle-increment", "servos"]
@@ -96,5 +110,6 @@ me_arm_schema = {
 schema_store = {
     "http://theRealThor.com/meArm.servo-controller.schema.json": ControllerSchema,
     "http://theRealThor.com/meArm.servo-attributes.schema.json": ServoSchema,
-    "http://theRealThor.com/meArm.arm-servo.schema.json": arm_servo_schema
+    "http://theRealThor.com/meArm.arm-servo.schema.json": arm_servo_schema,
+    "http://theRealThor.com/meArm.me-arm.schema.json": me_arm_schema
 }

@@ -24,32 +24,35 @@
 import time
 import logging
 import json
-from jsonschema import validate, RefResolver, Draft4Validator
+from jsonschema import validate, RefResolver, Draft4Validator, ValidationError, SchemaError
 from controller import PCA9685, Servo, ServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, CustomServoAttributes, software_reset
 from kinematics import Kinematics, Point
-from .arm_servo_attributes import me_armServo
-from .arm_attributes import me_armAttributes
-from .schemas import me_arm_schema, arm_servo_schema, schema_store
+from .arm_servo import me_armServo
+from .schemas import me_arm_schema, schema_store
 from pprint import pprint
 
 class me_arm(object):
     """Control meArm"""
 
     # arm neutrals and boundaries
-    elbow_neutral_angle = 0.0       # servo angle for elbow neutral position
-    shoulder_neutral_angle = 40.0   # servo angle for shoulder neutral position
     hip_neutral_angle = 0.0         # servo angle for hip neutral position
-
-    elbow_max_angle = 84.5          # servo angle for elbow max position
-    shoulder_max_angle = 65.0       # servo angle for shoulder max position
     hip_max_angle = 84.5            # servo angle for hip max position
-
-    elbow_min_angle = -25.0         # servo angle for elbow min position
-    shoulder_min_angle = -15.0      # servo angle for shoulder min position
     hip_min_angle = -84.5           # servo angle for hip min position
+    hip_trim = 0.0
+
+    shoulder_neutral_angle = 40.0   # servo angle for shoulder neutral position
+    shoulder_max_angle = 65.0       # servo angle for shoulder max position
+    shoulder_min_angle = -15.0      # servo angle for shoulder min position
+    shoulder_trim = 5.0
+
+    elbow_neutral_angle = -0.0       # servo angle for elbow neutral position
+    elbow_max_angle = 84.5          # servo angle for elbow max position
+    elbow_min_angle = -25.0         # servo angle for elbow min position
+    elbow_trim = -45.0
 
     gripper_closed_angle = 27.5     # servo angle for closed gripper
     gripper_open_angle = -20.0      # servo angle for open gripper
+    gripper_trim = 0.0
     _inc = 0.5                      # servo movement increment in degrees
 
     _instances = {}
@@ -137,20 +140,13 @@ class me_arm(object):
         """
         # defaults for servos
         self._hip_servo = me_armServo(hip_channel, MiuzeiSG90Attributes(), 
-                                me_arm.hip_neutral_angle, me_arm.hip_min_angle, me_arm.hip_max_angle)
+                                me_arm.hip_neutral_angle, me_arm.hip_min_angle, me_arm.hip_max_angle, me_arm.hip_trim)
         self._shoulder_servo = me_armServo(shoulder_channel, MiuzeiSG90Attributes(), 
-                                me_arm.shoulder_neutral_angle, me_arm.shoulder_min_angle, me_arm.shoulder_max_angle)
+                                me_arm.shoulder_neutral_angle, me_arm.shoulder_min_angle, me_arm.shoulder_max_angle, me_arm.shoulder_trim)
         self._elbow_servo = me_armServo(elbow_channel, MiuzeiSG90Attributes(), 
-                                me_arm.elbow_neutral_angle, me_arm.elbow_min_angle, me_arm.elbow_max_angle)
+                                me_arm.elbow_neutral_angle, me_arm.elbow_min_angle, me_arm.elbow_max_angle, me_arm.elbow_trim)
         self._gripper_servo = me_armServo(gripper_channel, MiuzeiSG90Attributes(), 
-                                0, me_arm.gripper_open_angle, me_arm.gripper_closed_angle)
-
-        #current angles
-        self._elbow_angle = me_arm.elbow_neutral_angle
-        self._shoulder_angle = me_arm.shoulder_neutral_angle
-        self._hip_angle = me_arm.hip_neutral_angle
-        x, y, z = self._kinematics.toCartesian(self._hip_angle, self._shoulder_angle, self._elbow_angle)
-        self._position = Point.fromCartesian(x, y, z)        
+                                0, me_arm.gripper_open_angle, me_arm.gripper_closed_angle, me_arm.gripper_trim)     
 
     @classmethod
     def boot_from_json_file(cls, json_file:str):
@@ -161,10 +157,11 @@ class me_arm(object):
         """
         with open(json_file) as file:
             data = json.load(file)
-            resolver = RefResolver('', arm_servo_schema, schema_store)
-            validator = Draft4Validator(arm_servo_schema, [], resolver)
-            #validator.validate()
-            validator.is_valid(me_arm_schema)
+            resolver = RefResolver('', me_arm_schema, schema_store)
+            validator = Draft4Validator(me_arm_schema, [], resolver)
+            validator.check_schema(me_arm_schema)
+            #if not validator.is_valid(data):
+            #    raise ValidationError('Could not validate meArm json. Check your json file', instance = 1)
         return cls.boot_from_dict(data)
 
     @classmethod
@@ -175,10 +172,11 @@ class me_arm(object):
         :type json_string: str
         """
         data = json.loads(json_string)
-        resolver = RefResolver('', arm_servo_schema, schema_store)
-        validator = Draft4Validator(arm_servo_schema, [], resolver)
-        #validator.validate()
-        validator.is_valid(me_arm_schema)
+        resolver = RefResolver('', me_arm_schema, schema_store)
+        validator = Draft4Validator(me_arm_schema, [], resolver)
+        validator.check_schema(me_arm_schema)
+        #if not validator.is_valid(data):
+        #    raise ValidationError('Could not validate meArm json. Check your json file', instance = 1)
         return cls.boot_from_dict(data)
 
     @classmethod
@@ -332,7 +330,7 @@ class me_arm(object):
         """close
         Close the gripper, grabbing onto anything that might be there
         """
-        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.max)
+        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.max - self._gripper_servo.trim)
         time.sleep(0.3)
 
     def is_reachable(self, point: Point) -> (bool, float, float, float):
@@ -350,9 +348,9 @@ class me_arm(object):
         """
         hip, shoulder, elbow = self._kinematics.fromCartesian(point.x, point.y, point.z)
         isReachable = True
-        if hip < self._hip_servo.min or hip > self._hip_servo.max: isReachable = False
-        if shoulder < self._shoulder_servo.min or shoulder > self._shoulder_servo.max: isReachable = False
-        if elbow < self._elbow_servo.min or elbow > self._elbow_servo.max: isReachable = False
+        if hip - self._hip_servo.trim < self._hip_servo.min or hip > self._hip_servo.max: isReachable = False
+        if shoulder - self._shoulder_servo.trim < self._shoulder_servo.min or shoulder > self._shoulder_servo.max: isReachable = False
+        if elbow - self._elbow_servo.trim < self._elbow_servo.min or elbow > self._elbow_servo.max: isReachable = False
         return isReachable, hip, shoulder, elbow
 
     def go_directly_to_point(self, target: Point, raiseOutOfBoundsException: bool = True) -> bool:
@@ -377,14 +375,16 @@ class me_arm(object):
             if raiseOutOfBoundsException: raise Exception(msg)
             return False       
 
-        self._controller.set_servo_angle(self._hip_servo.channel, hip)
-        self._controller.set_servo_angle(self._shoulder_servo.channel, shoulder)
-        self._controller.set_servo_angle(self._elbow_servo.channel, elbow)
+        self._controller.set_servo_angle(self._hip_servo.channel, hip - self._hip_servo.trim )
+        self._controller.set_servo_angle(self._shoulder_servo.channel, shoulder - self._shoulder_servo.trim)
+        self._controller.set_servo_angle(self._elbow_servo.channel, elbow - self._elbow_servo.trim)
         self._position = target
         self._hip_angle = hip
         self._shoulder_angle = shoulder
         self._elbow_angle = elbow
-        self._logger.info("Goto point x: %d, y: %d, z: %d", target.x, target.y, target.z)
+        self._logger.info("Goto point x: %f, y: %f, z: %f; hip: %f, shoulder: %f, elbow: %f",
+            target.x, target.y, target.z,
+            hip - self._hip_servo.trim , shoulder - self._shoulder_servo.trim, elbow - self._elbow_servo.trim)
         return True
 
     def go_to_point(self, target: Point, resolution: int = 10, raiseOutOfBoundsException: bool = True) -> int:
@@ -402,16 +402,13 @@ class me_arm(object):
         :return: The number of movements executed
         :rtype: int       
         """
-        # if not self.is_reachable(target)[0]:
-        #    if raiseOutOfBoundsException:
-        #        raise Exception("Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z))
-        #    else:
-        #        return 0
+        if not self.is_reachable(target)[0]:
+           if raiseOutOfBoundsException:
+               raise Exception("Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z))
+           else:
+               return 0
         
-        pprint(target.toDict())
-        pprint(self._position.toDict())
         dist = self._position.distance(target)
-        pprint(dist)
         i = 0
         c = 1
         while i < dist:
@@ -429,11 +426,18 @@ class me_arm(object):
         return c
 
     def initialize(self):
-        """Registers the servo."""
+        """Registers the servo.""" 
         self._controller.add_servo(self._hip_servo.channel, self._hip_servo.attributes)
         self._controller.add_servo(self._shoulder_servo.channel, self._shoulder_servo.attributes)
         self._controller.add_servo(self._elbow_servo.channel, self._elbow_servo.attributes)
         self._controller.add_servo(self._gripper_servo.channel, self._gripper_servo.attributes)
+        
+        # set neutral angles
+        self._elbow_angle = self._elbow_servo.neutral + self._elbow_servo.trim
+        self._shoulder_angle = self._shoulder_servo.neutral + self._shoulder_servo.trim
+        self._hip_angle = self._hip_servo.neutral + self._hip_servo.trim
+        x, y, z = self._kinematics.toCartesian(self._hip_angle, self._shoulder_angle, self._elbow_angle)
+        self._position = Point.fromCartesian(x, y, z)  
         self.reset()
         self._logger.info("meArm with id %s initialized", self._id)
 
@@ -442,7 +446,7 @@ class me_arm(object):
         
         Opens the gripper, dropping whatever is being carried
         """
-        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
+        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min - self._gripper_servo.trim)
         time.sleep(0.3)
 
     def reset(self):
@@ -453,6 +457,7 @@ class me_arm(object):
         self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_servo.neutral)
         self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_servo.neutral)
         self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
+        self._logger.info("hip: %f, shoulder: %f, elbow: %f", self._hip_servo.neutral, self._shoulder_servo.neutral, self._elbow_servo.neutral)
         time.sleep(0.3)
 
     def test(self, repeat: bool = False) -> int:
@@ -465,20 +470,20 @@ class me_arm(object):
         :rtype: int
         """
         if repeat: self._logger.info('Press Ctrl-C to quit...')
-        self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
-        self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle)
-        self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle)
+        self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
+        self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle - self._shoulder_servo.trim)
+        self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle - self._elbow_servo.trim)
         self.close()
         ops = 0
         keep_going = True
         while keep_going:     
             while self._elbow_angle < self._elbow_servo.max:
-                self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle)
+                self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle - self._elbow_servo.trim)
                 self._elbow_angle += me_arm._inc
                 ops += 1
 
             while self._shoulder_angle > self._shoulder_servo.min:
-                self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle)
+                self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle - self._shoulder_servo.trim)
                 self._shoulder_angle -= me_arm._inc
                 ops += 1
 
@@ -486,22 +491,22 @@ class me_arm(object):
             ops += 1
 
             while self._hip_angle > self._hip_servo.min:
-                self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
+                self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
                 self._hip_angle -= me_arm._inc
                 ops += 1
 
             while self._shoulder_angle < self._shoulder_servo.max:
-                self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle)
+                self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_angle - self._shoulder_servo.trim)
                 self._shoulder_angle += me_arm._inc
                 ops += 1
 
             while self._elbow_angle > self._elbow_servo.min:
-                self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle)
+                self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_angle - self._elbow_servo.trim)
                 self._elbow_angle -= me_arm._inc
                 ops += 1
 
             while self._hip_angle < self._hip_servo.max:
-                self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
+                self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
                 self._hip_angle += me_arm._inc
                 ops += 1
 
@@ -509,7 +514,7 @@ class me_arm(object):
             ops += 1
             
             while self._hip_angle > self._hip_servo.neutral:
-                self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle)
+                self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
                 self._hip_angle -= me_arm._inc
                 ops += 1
             

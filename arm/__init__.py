@@ -20,6 +20,5 @@
 # THE SOFTWARE.
 """meArm controller for Raspberry Pi"""
 from .schemas import arm_servo_schema as ServoSchema, me_arm_schema as meArmSchema
-from .arm_attributes import me_armAttributes
-from .arm_servo_attributes import me_armServo
+from .arm_servo import me_armServo
 from .me_arm import me_arm

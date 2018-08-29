@@ -22,14 +22,14 @@
 # pylint: disable=C0103
 """Module defining a meArm servo property class"""
 import json
-from jsonschema import validate, RefResolver, Draft4Validator
+from jsonschema import validate, RefResolver, Draft4Validator, ValidationError
 from controller import ServoAttributes, ES08MAIIAttributes, CustomServoAttributes, MiuzeiSG90Attributes, ServoSchema
-from .schemas import arm_servo_schema, me_arm_schema, schema_store
+from .schemas import arm_servo_schema, schema_store
 
 class me_armServo(object):
     """This class describes a servo attached to the meArm and associated attributes"""
 
-    def __init__(self, channel: int, attributes: ServoAttributes, neutral: float, min: float, max: float):
+    def __init__(self, channel: int, attributes: ServoAttributes, neutral: float, min: float, max: float, trim: float = 0.0):
         """__init___
         Initializes me_armServo. 
 
@@ -47,12 +47,16 @@ class me_armServo(object):
 
         :param min: The minimum meArm angle for this servo
         :type min: float
+
+        :param trim: The servo trim in angles to align the servo plane with the arm plane
+        :type trim: float
         """
         self._channel = channel
         self._servo = attributes
         self._neutral = neutral
         self._max = max
         self._min = min
+        self._trim = trim
 
     @classmethod
     def from_json_file(cls, json_file:str):
@@ -65,8 +69,9 @@ class me_armServo(object):
             data = json.load(file)
             resolver = RefResolver('', arm_servo_schema, schema_store)
             validator = Draft4Validator(arm_servo_schema, [], resolver)
-            #validator.validate()
-            validator.is_valid(data)
+            validator.check_schema(arm_servo_schema)
+            if not validator.is_valid(data):
+                raise ValidationError('Could not validate meArm servo json. Check your json file', instance = 1)
         instance = cls.from_dict(data)
         return instance
 
@@ -80,8 +85,9 @@ class me_armServo(object):
         data = json.loads(json_string)
         resolver = RefResolver('', arm_servo_schema, schema_store)
         validator = Draft4Validator(arm_servo_schema, [], resolver)
-        #validator.validate()
-        validator.is_valid(data)
+        validator.check_schema(arm_servo_schema)
+        if not validator.is_valid(data):
+            raise ValidationError('Could not validate meArm servo json. Check your json file', instance = 1)
         instance = cls.from_dict(data)
         return instance
 
@@ -104,7 +110,8 @@ class me_armServo(object):
             servo,
             data['range']['neutral'],
             data['range']['min'],
-            data['range']['max']
+            data['range']['max'],
+            data['trim']
         )       
         return instance
 
@@ -142,3 +149,10 @@ class me_armServo(object):
         :rtype: float
         """
         return self._min
+
+    @property 
+    def trim(self) -> float:
+        """Gets the trim for the servo to align with the arm plane
+        :rtype: float
+        """
+        return self._trim

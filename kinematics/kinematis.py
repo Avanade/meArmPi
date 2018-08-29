@@ -287,8 +287,8 @@ class Kinematics(object):
         r1, theta = self.cart2polar(r, z)
         
         # Solve arm inner angles as required
-        b = self.calculateAngle(self._elbowToWrist, self._shoulderToElbow, r1)
-        c = self.calculateAngle(r1, self._shoulderToElbow, self._elbowToWrist)
+        b = self.calculateAngle(self._elbowToWrist, r1, self._shoulderToElbow)
+        c = self.calculateAngle(self._shoulderToElbow, self._elbowToWrist, r1)
         
         # Solve for servo angles from horizontal
         a1 = theta + b

@@ -1,6 +1,8 @@
 {
     "version": "0.2.0",
-    "configurations": [{
+    "configurations": [
+
+        {
             "name": "Python",
             "type": "python",
             "request": "launch",
@@ -41,7 +43,7 @@
             ]
         },
         {
-            "name": "Python Module",
+            "name": "Python Server",
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
@@ -197,7 +199,7 @@
             "localRoot": "${workspaceRoot}",
             "remoteRoot": "${workspaceRoot}",
             "port": 3000,
-            "secret": "my_secret",
+            "secret": "let's see it work",
             "host": "localhost"
         }
     ]

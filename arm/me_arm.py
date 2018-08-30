@@ -29,10 +29,13 @@ from controller import PCA9685, Servo, ServoAttributes, MiuzeiSG90Attributes, ES
 from kinematics import Kinematics, Point
 from .arm_servo import me_armServo
 from .schemas import me_arm_schema, schema_store
-from pprint import pprint
+
+import ptvsd
 
 class me_arm(object):
     """Control meArm"""
+
+    attached = False
 
     # arm neutrals and boundaries
     hip_neutral_angle = 0.0         # servo angle for hip neutral position
@@ -346,11 +349,20 @@ class me_arm(object):
         :rtype: (bool, float, float, float)
         
         """
+        
+        if not me_arm.attached:
+            # Allow other computers to attach to ptvsd at this IP address and port, using the secret
+            ptvsd.enable_attach("let's see it work", address = ('127.0.0.1', 3000))
+
+            # Pause the program until a remote debugger is attached
+            ptvsd.wait_for_attach()
+            me_arm.attached = True
+        
         hip, shoulder, elbow = self._kinematics.fromCartesian(point.x, point.y, point.z)
         isReachable = True
-        if hip - self._hip_servo.trim < self._hip_servo.min or hip > self._hip_servo.max: isReachable = False
-        if shoulder - self._shoulder_servo.trim < self._shoulder_servo.min or shoulder > self._shoulder_servo.max: isReachable = False
-        if elbow - self._elbow_servo.trim < self._elbow_servo.min or elbow > self._elbow_servo.max: isReachable = False
+        if hip - self._hip_servo.trim < self._hip_servo.min or hip - self._hip_servo.trim > self._hip_servo.max: isReachable = False
+        if shoulder - self._shoulder_servo.trim < self._shoulder_servo.min or shoulder - self._shoulder_servo.trim > self._shoulder_servo.max: isReachable = False
+        if elbow - self._elbow_servo.trim < self._elbow_servo.min or elbow - self._elbow_servo.trim > self._elbow_servo.max: isReachable = False
         return isReachable, hip, shoulder, elbow
 
     def go_directly_to_point(self, target: Point, raiseOutOfBoundsException: bool = True) -> bool:
@@ -402,11 +414,6 @@ class me_arm(object):
         :return: The number of movements executed
         :rtype: int       
         """
-        if not self.is_reachable(target)[0]:
-           if raiseOutOfBoundsException:
-               raise Exception("Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z))
-           else:
-               return 0
         
         dist = self._position.distance(target)
         i = 0
@@ -419,7 +426,7 @@ class me_arm(object):
             i += resolution
             if self.go_directly_to_point(p, raiseOutOfBoundsException):
                 c += 1
-                time.sleep(0.05)
+                time.sleep(0.02)
 
         self.go_directly_to_point(target, raiseOutOfBoundsException)
         time.sleep(0.05)

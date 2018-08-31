@@ -404,6 +404,9 @@ class me_arm(object):
         dist = self._position.distance(target)
         p = self._position
         cycles = dist/resolution
+        if dist == 0 or cycles == 0: 
+            return 0
+
         dx = (target.x - p.x) / cycles
         dy = (target.y - p.y) / cycles
         dz = (target.z - p.z) / cycles

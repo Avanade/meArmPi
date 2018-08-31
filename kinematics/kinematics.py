@@ -240,10 +240,12 @@ class Kinematics(object):
         if not self._useRadians:
             _pi = 180
         a1_arm = _pi/2 - a1
+        a2_arm = (_pi/2 + a2) * -1.0
+
 
         # Calculate u,v coordinates for arm
         u01, v01 = self.polar2cart(self._shoulderToElbow, a1_arm)
-        u12, v12 = self.polar2cart(self._elbowToWrist, a2)
+        u12, v12 = self.polar2cart(self._elbowToWrist, a2_arm)
 
         # Add vectors
         u = u01 + u12 + self._wristToHand
@@ -280,11 +282,19 @@ class Kinematics(object):
         r1, theta = self.cart2polar(r, z)
 
         # Solve arm inner angles as required
-        b = self.calculateAngle(self._elbowToWrist, r1, self._shoulderToElbow)
+        b = self.calculateAngle(self._shoulderToElbow, r1, self._elbowToWrist)
         c = self.calculateAngle(self._shoulderToElbow, self._elbowToWrist, r1)
+        d = self.calculateAngle(r1, self._shoulderToElbow, self._elbowToWrist)
+
+        print ("                            (%f, %f, %f) -> (%f, %f, %f, %f)" % (x, y, z, b, c, d, theta))
+    
 
         # Solve for servo angles from horizontal
-        a_elbow = theta + b
-        a_shoulder = (_pi/2 + c + a_elbow) * -1.0
+        if theta > _pi/4:
+            a_elbow = _pi/2 + theta + b
+        else:
+            a_elbow = _pi/2 + theta - b
+        #print ("(%f, %f)" % (theta, b)) 
+        a_shoulder = c - a_elbow - _pi/2
 
-        return a_hip, a_shoulder, a_elbow
+        return a_hip, a_shoulder, a_elbow * -1.0

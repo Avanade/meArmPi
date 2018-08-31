@@ -352,7 +352,7 @@ class me_arm(object):
         
         if not me_arm.attached:
             # Allow other computers to attach to ptvsd at this IP address and port, using the secret
-            ptvsd.enable_attach("let's see it work", address = ('127.0.0.1', 3000))
+            ptvsd.enable_attach("let's see it work", ('127.0.0.1', 3000))
 
             # Pause the program until a remote debugger is attached
             ptvsd.wait_for_attach()

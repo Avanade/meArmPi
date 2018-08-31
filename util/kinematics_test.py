@@ -20,8 +20,20 @@
 # THE SOFTWARE.
 #
 # pylint: disable=C0103
-"""
-    Kinematics module to translate cartesian/polar coordinates into servo angles for 
-    meArm.
-"""
-from .kinematics import Point, Kinematics
+"""Simple test for servo actuation"""
+from kinematics import Kinematics
+
+kinematics = Kinematics(False)
+increment = 5.0
+hip = 0.0
+shoulder = 82.0
+elbow = -45.0
+
+# run a loop through the elbow angles and reverse
+elbow = -135.0
+while elbow < 30.0:
+    x, y, z = kinematics.toCartesian(hip, shoulder, elbow)
+    a, b, c = kinematics.fromCartesian(x, y, z)
+    print ("(%f, %f, %f) -> (%f, %f, %f) -> (%f, %f, %f)\n" % (hip, shoulder, elbow, x, y, z, a, b, c))
+    elbow += increment
+

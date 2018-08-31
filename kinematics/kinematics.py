@@ -284,17 +284,8 @@ class Kinematics(object):
         # Solve arm inner angles as required
         b = self.calculateAngle(self._shoulderToElbow, r1, self._elbowToWrist)
         c = self.calculateAngle(self._shoulderToElbow, self._elbowToWrist, r1)
-        d = self.calculateAngle(r1, self._shoulderToElbow, self._elbowToWrist)
 
-        print ("                            (%f, %f, %f) -> (%f, %f, %f, %f)" % (x, y, z, b, c, d, theta))
-    
-
-        # Solve for servo angles from horizontal
-        if theta > _pi/4:
-            a_elbow = _pi/2 + theta + b
-        else:
-            a_elbow = _pi/2 + theta - b
-        #print ("(%f, %f)" % (theta, b)) 
-        a_shoulder = c - a_elbow - _pi/2
+        a_shoulder = _pi/2 - b - theta
+        a_elbow = c - a_shoulder
 
         return a_hip, a_shoulder, a_elbow * -1.0

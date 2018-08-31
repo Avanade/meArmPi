@@ -21,19 +21,27 @@
 #
 # pylint: disable=C0103
 """Simple test for servo actuation"""
+import math
 from kinematics import Kinematics
+from random import randint
 
 kinematics = Kinematics(False)
-increment = 5.0
-hip = 0.0
-shoulder = 82.0
-elbow = -45.0
 
-# run a loop through the elbow angles and reverse
-elbow = -135.0
-while elbow < 30.0:
-    x, y, z = kinematics.toCartesian(hip, shoulder, elbow)
-    a, b, c = kinematics.fromCartesian(x, y, z)
-    print ("(%f, %f, %f) -> (%f, %f, %f) -> (%f, %f, %f)\n" % (hip, shoulder, elbow, x, y, z, a, b, c))
-    elbow += increment
+def random_angle() -> float:
+    a = randint(-88,88) * 1.0
+    return a
 
+count = 0
+while count < 1000000:
+    a = random_angle()
+    b = random_angle()
+    c = random_angle()
+    x, y, z = kinematics.toCartesian(a, b, c)
+    a1, b1, c1 = kinematics.fromCartesian(x, y, z)
+    if not math.isclose(a1, a, abs_tol=0.00001) or not math.isclose(b1, b, abs_tol=0.00001) or not math.isclose(c1, c, abs_tol=0.00001):
+        # counter resolve as we may have passed an inflection point
+        x1, y1, z1 = kinematics.toCartesian(a1, b1, c1)
+        if not math.isclose(x1, x, abs_tol=0.00001) or not math.isclose(y1, y, abs_tol=0.00001) or not math.isclose(z1,z, abs_tol=0.00001):
+            print ("failed to resolve (%f, %f, %f) ->\n                  (%f, %f, %f) ->\n                  (%f, %f, %f) ->\n                  (%f, %f, %f)" % (a, b, c, x, y, z, a1, b1, c1, x1, y1, z1))
+    count += 1
+print ("%d test completed" % count)

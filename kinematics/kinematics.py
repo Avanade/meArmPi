@@ -38,12 +38,12 @@ class Point(object):
         :param useRadians:      True to express angles in radians, false otherwise
         :type useRadias:        bool
         """
-        self.x = 0
-        self.y = 0
-        self.z = 0
-        self.r = 0
-        self.lng = 0
-        self.lat = 0
+        self.x = 0.0
+        self.y = 0.0
+        self.z = 0.0
+        self.r = 0.0
+        self.lng = 0.0
+        self.lat = 0.0
         self._useRadians = useRadians
 
     @classmethod

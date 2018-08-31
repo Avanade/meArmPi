@@ -386,7 +386,7 @@ class me_arm(object):
             hip - self._hip_servo.trim , shoulder - self._shoulder_servo.trim, elbow - self._elbow_servo.trim)
         return True
 
-    def go_to_point(self, target: Point, resolution: int = 10, raiseOutOfBoundsException: bool = True) -> int:
+    def go_to_point(self, target: Point, resolution: float = 10, raiseOutOfBoundsException: bool = True) -> int:
         """go_to_point
         
         Travel in a straight line from current position to a requested position
@@ -401,19 +401,19 @@ class me_arm(object):
         :return: The number of movements executed
         :rtype: int       
         """
-        
         dist = self._position.distance(target)
-        i = 0
+        p = self._position
+        cycles = dist/resolution
+        dx = (target.x - p.x) / cycles
+        dy = (target.y - p.y) / cycles
+        dz = (target.z - p.z) / cycles
+        i = 1
         c = 1
-        while i < dist:
-            p = Point.fromCartesian(
-                self._position.x + (target.x - self._position.x) * i / dist, 
-                self._position.y + (target.y - self._position.y) * i / dist, 
-                self._position.z + (target.z - self._position.z) * i / dist)
-            i += resolution
-            if self.go_directly_to_point(p, raiseOutOfBoundsException):
-                c += 1
-
+        while i < cycles:
+            p1 = Point.fromCartesian(p.x + dx, p.y + dy, p.z + dz)
+            if self.go_directly_to_point(p1, raiseOutOfBoundsException): c += 1
+            i += 1
+            p = p1
         self.go_directly_to_point(target, raiseOutOfBoundsException)
         return c
 

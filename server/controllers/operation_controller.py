@@ -151,8 +151,11 @@ def operate(id, operations):  # noqa: E501
             for dummy, val in enumerate(operations):
                 count += 1
                 if val.type == 'moveTo':
-                    target = Point.fromCartesian(val.target.x, val.target.y, val.target.z)
-                    num_ops += arm.go_to_point(target, 1, False)
+                    if val.target.x is None or val.target.y is None or val.target.z is None:
+                        target = Point.fromPolar(val.target.r, val.target.lat, val.targte.lng)
+                    else:
+                        target = Point.fromCartesian(val.target.x, val.target.y, val.target.z)
+                    num_ops += arm.go_to_point(target, 2.5, False)
                 elif val.type == 'grab':
                     arm.close()
                     num_ops += 1

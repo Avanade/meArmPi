@@ -413,10 +413,8 @@ class me_arm(object):
             i += resolution
             if self.go_directly_to_point(p, raiseOutOfBoundsException):
                 c += 1
-                time.sleep(0.02)
 
         self.go_directly_to_point(target, raiseOutOfBoundsException)
-        time.sleep(0.05)
         return c
 
     def initialize(self):

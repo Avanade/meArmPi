@@ -288,4 +288,4 @@ class Kinematics(object):
         a_shoulder = _pi/2 - b - theta
         a_elbow = c - a_shoulder
 
-        return a_hip, a_shoulder, a_elbow * -1.0
+        return a_hip, a_shoulder, a_elbow

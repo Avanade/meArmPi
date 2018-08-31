@@ -36,9 +36,9 @@
                     "range": {
                         "neutral": 10.0,
                         "max": 84.5,
-                        "min": -45.0
+                        "min": -55.0
                     },
-                    "trim": -55.0
+                    "trim": 55.0
                 },
                 "shoulder": {
                     "channel": 13,

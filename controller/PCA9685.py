@@ -234,7 +234,7 @@ class PCA9685(object):
         """get_servo
         Gets the servo on channel.
 
-        :param: channel: The channel for which to obtain the servo state. Between 0 and 15.
+        :param channel: The channel for which to obtain the servo state. Between 0 and 15.
         :type channel: integer
 
         :rtype (Servo) -The servo on that channel.
@@ -253,10 +253,10 @@ class PCA9685(object):
         """set_servo_pulse
         Sets the servo on channel to a certain pulse width.
 
-        :param: channel: The channel for which to obtain the servo state. Between 0 and 15.
+        :param channel: The channel for which to obtain the servo state. Between 0 and 15.
         :type channel: integer
 
-        :param: pulse: The pulse length to set.
+        :param pulse: The pulse length to set.
         :type pulse: float
 
         """
@@ -273,10 +273,10 @@ class PCA9685(object):
         """set_servo_angle
         Sets the servo on channel to a certain angle.
 
-        :param: channel: The channel for which to obtain the servo state. Between 0 and 15.
+        :param channel: The channel for which to obtain the servo state. Between 0 and 15.
         :type channel: integer
 
-        :param: angle: The angle to set. The finest resolution is about 0.5 degrees.
+        :param angle: The angle to set. The finest resolution is about 0.5 degrees.
         :type pulse: angle
 
         """
@@ -291,10 +291,10 @@ class PCA9685(object):
 
     def set_pwm_freq(self, servo_frequency: int):
         """set_pwm_freq
-            Set the PWM frequency to the provided value in hertz.
+        Set the PWM frequency to the provided value in hertz.
 
-            :param servo_frequency: The frequency of the servo pulse.
-            :type servo_frequency: integer
+        :param servo_frequency: The frequency of the servo pulse.
+        :type servo_frequency: integer
 
         """
         prescaleval = float(self._frequency)
@@ -313,17 +313,36 @@ class PCA9685(object):
         time.sleep(0.005)
         self._device.write8(MODE1, oldmode | 0x80)
 
+    def set_off(self, channel: int, tf: bool = True):
+        """set_off
+        Toggles channel off state. Note that turning the channel totally of will not retain the servo angle
+        against manual manipulation
+
+        :param channel: The channel on which to operate.
+        :type channel: int
+        
+        :param tf: Set to True to turn the channel off, False to turn the channel back to PWM
+        :type tf: bool
+        
+        """
+        oldmode = self._device.readRaw8(LED0_OFF_H+4*channel)
+        if tf == 1:
+            mode = oldmode | 0x10
+        else:
+            mode = oldmode & 0xEF
+        self._device.write8(LED0_OFF_H+4*channel, mode)
+
     def set_pwm(self, channel: int, on_ticks: int, off_ticks: int):
         """set_pwm
         Sets a single PWM channel pulse.
 
-        :param: channel: The channel for which to obtain the servo state. Between 0 and 15.
+        :param channel: The channel for which to obtain the servo state. Between 0 and 15.
         :type channel: integer
 
-        :param: on_ticks: Number of ticks into a period at which to switch the pulse on.
+        :param on_ticks: Number of ticks into a period at which to switch the pulse on.
         :type pulse: integer
 
-        :param: off_ticks: Number of ticks into a period at which to switch the pulse off.
+        :param off_ticks: Number of ticks into a period at which to switch the pulse off.
         :type pulse: integer
 
         """
@@ -343,10 +362,10 @@ class PCA9685(object):
         """set_pwm
         Sets all PWM channel pulse.
 
-        :param: on_ticks: Number of ticks into a period at which to switch the pulse on.
+        :param on_ticks: Number of ticks into a period at which to switch the pulse on.
         :type pulse: integer
 
-        :param: off_ticks: Number of ticks into a period at which to switch the pulse off.
+        :param off_ticks: Number of ticks into a period at which to switch the pulse off.
         :type pulse: integer
 
         """

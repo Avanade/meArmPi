@@ -144,7 +144,7 @@ def operate(id, operations):  # noqa: E501
     try:
         if connexion.request.is_json:
             operations = Operations.from_dict(connexion.request.get_json())  # noqa: E501
-            if len(operations) > 10:
+            if len(operations) > 25:
                 return 'Too many operations. Reduce the number of operations to 10 or less', 413
             arm = me_arm.get(id)
             num_ops = 0

@@ -140,16 +140,14 @@ def operate(id, operations):  # noqa: E501
     if token != common.token[id]:
         return common.status[id], 403
 
-    count = 0
+    num_ops = 0
     try:
         if connexion.request.is_json:
             operations = Operations.from_dict(connexion.request.get_json())  # noqa: E501
             if len(operations) > 25:
                 return 'Too many operations. Reduce the number of operations to 10 or less', 413
             arm = me_arm.get(id)
-            num_ops = 0
             for dummy, val in enumerate(operations):
-                count += 1
                 if val.type == 'moveTo':
                     if val.target.x is None or val.target.y is None or val.target.z is None:
                         target = Point.fromPolar(val.target.r, val.target.lat, val.target.lng)
@@ -169,7 +167,8 @@ def operate(id, operations):  # noqa: E501
     except ValueError:
         return 'Incorrect operation type. Only moveTo, grab and release are supported', 400
 
+    common.status[id].numberOfOperations += num_ops
     return OperationStatus(
-        count,
+        num_ops,
         (datetime.datetime.now() - t_start).total_seconds(),
         common.status[id].position)

@@ -30,12 +30,8 @@ from kinematics import Kinematics, Point
 from .arm_servo import me_armServo
 from .schemas import me_arm_schema, schema_store
 
-import ptvsd
-
 class me_arm(object):
     """Control meArm"""
-
-    attached = False
 
     # arm neutrals and boundaries
     hip_neutral_angle = 0.0         # servo angle for hip neutral position
@@ -349,15 +345,6 @@ class me_arm(object):
         :rtype: (bool, float, float, float)
         
         """
-        
-        if not me_arm.attached:
-            # Allow other computers to attach to ptvsd at this IP address and port, using the secret
-            ptvsd.enable_attach("let's see it work", ('127.0.0.1', 3000))
-
-            # Pause the program until a remote debugger is attached
-            ptvsd.wait_for_attach()
-            me_arm.attached = True
-        
         hip, shoulder, elbow = self._kinematics.fromCartesian(point.x, point.y, point.z)
         isReachable = True
         if hip - self._hip_servo.trim < self._hip_servo.min or hip - self._hip_servo.trim > self._hip_servo.max: isReachable = False

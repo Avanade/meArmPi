@@ -23,6 +23,7 @@
 import uuid
 import datetime
 import connexion
+import threading
 
 from server.models.token import Token  # noqa: E501
 from server.models.session_status import SessionStatus  # noqa: E501
@@ -73,7 +74,10 @@ def checkin(id): # noqa: E501
     arm = me_arm.get(id)
     arm.reset()
     arm.turn_off()
-
+    if common.inactivity_timer[id] is not None: 
+        common.inactivity_timer[id].cancel()
+        common.inactivity_timer[id] = None
+        
     return SessionStatus(False, duration, ops)
 
 def checkout(id):  # noqa: E501
@@ -103,6 +107,7 @@ def checkout(id):  # noqa: E501
 
     arm = me_arm.get(id)
     arm.turn_on()
+    _restart_timeout(id)
 
     response = Token(common.token[id])
     return response
@@ -124,6 +129,7 @@ def operate(id, operations):  # noqa: E501
 
     :rtype: OperationStatus
     """
+    _restart_timeout(id)
     t_start = datetime.datetime.now()
 
     if id not in me_arm.get_names():
@@ -172,11 +178,35 @@ def operate(id, operations):  # noqa: E501
                     num_ops += arm.test(False)
                 else:
                     raise ValueError(Operation)
+                _restart_timeout(id)
     except ValueError:
         return 'Incorrect operation type. Only moveTo, grab and release are supported', 400
 
     common.status[id].movements_since_checkout += num_ops
+    _restart_timeout(id)
     return OperationStatus(
         num_ops,
         (datetime.datetime.now() - t_start).total_seconds(),
         common.status[id].position)
+
+def _restart_timeout(id: str):
+    """Restarts the inactivity timer for the arm
+    :param id: id of the meArm for which to restart the timer
+    :type id: string
+    """
+    if id not in me_arm.get_names(): return
+    if common.inactivity_timer[id] is not None: common.inactivity_timer[id].cancel()
+    common.inactivity_timer[id] = threading.Timer(60, _timeout_handler, [id])
+    common.inactivity_timer[id].start()
+
+def _timeout_handler(id: str):
+    """Checks in the arm when inactivity timeout has expired
+    :param id: id of the meArm the has timed out.
+    :type id: string
+    """
+    if id not in me_arm.get_names(): return
+    common.status[id] = Status(common.HOSTNAME, common.VERSION, False)
+    common.token[id] = None
+    arm = me_arm.get(id)
+    arm.reset()
+    arm.turn_off()

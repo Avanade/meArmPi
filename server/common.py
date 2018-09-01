@@ -40,12 +40,15 @@ def init():
 
     global token
     global status
+    global inactivity_timer
 
     token = {}
     status = {}
+    inactivity_timer = {}
 
     me_arm.boot_from_json_file('me_arm.json')
     for name in me_arm.get_names():
+        inactivity_timer[name] = None
         token[name] = None
         status[name] = Status(HOSTNAME, VERSION, False)
         arm = me_arm.get(name)

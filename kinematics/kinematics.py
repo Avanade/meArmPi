@@ -71,10 +71,11 @@ class Point(object):
         if p.r == 0:
             p.lat = math.pi/2
             p.lng = math.pi/2
-        else:    
+        else:
             p.lat = math.acos(z / p.r)
             p.lng = math.acos(x / math.sqrt(x*x*1.0 +y*y*1.0))
-        if y < 0: p.lng = -p.lng
+        if y < 0:
+            p.lng = -p.lng
         if not useRadians:
             p.lat = math.degrees(p.lat)
             p.lng = math.degrees(p.lng)
@@ -176,10 +177,12 @@ class Kinematics(object):
         :return:        The angle between the legs
         :rtype:         float
         """
-        if leg1 == 0 or leg2 == 0: return 0
+        if leg1 == 0 or leg2 == 0:
+            return 0
+
         c = ((leg1*leg1 + leg2*leg2 - opp*opp) * 1.0)/(2.0 * leg1 * leg2)
         if c > 1 or c < -1:
-            raise Exception("Arguments %f, %f and %f do not appear to constitute a valid triangle..." % (leg1, leg2, opp))
+            raise Exception("(%f, %f, %f) do not constitute a valid triangle." % (leg1, leg2, opp))
         alpha = math.acos(c)
         if not self._useRadians:
             alpha = math.degrees(alpha)
@@ -197,12 +200,14 @@ class Kinematics(object):
         :rtype:     (float, float)
         """
         r = math.hypot(x *1.0, y * 1.0)        # get the radius
-        if r == 0: return 0.0, 0.0
+        if r == 0:
+            return 0.0, 0.0
 
         c = x / r                              # r = x * cos(alpha)
         s = y / r                              # r = y * sin(alpha)
         alpha = math.acos(c)                   # angle between 0 and pi
-        if s < 0: alpha = -alpha
+        if s < 0:
+            alpha = -alpha
         if not self._useRadians:
             alpha = math.degrees(alpha)
         return r, alpha
@@ -243,13 +248,10 @@ class Kinematics(object):
         _pi = math.pi
         if not self._useRadians:
             _pi = 180
-        a1_arm = _pi/2 - a1
-        a2_arm = (_pi/2 + a2) * -1.0
-
 
         # Calculate u,v coordinates for arm
-        u01, v01 = self.polar2cart(self._shoulderToElbow, a1_arm)
-        u12, v12 = self.polar2cart(self._elbowToWrist, a2_arm)
+        u01, v01 = self.polar2cart(self._shoulderToElbow, _pi/2 - a1)
+        u12, v12 = self.polar2cart(self._elbowToWrist, a2 - _pi/2)
 
         # Add vectors
         u = u01 + u12 + self._wristToHand

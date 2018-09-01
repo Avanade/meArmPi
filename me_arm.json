@@ -34,7 +34,7 @@
                     "channel": 12,
                     "type": "SG-90",
                     "range": {
-                        "neutral": 10.0,
+                        "neutral": -10.0,
                         "max": 84.5,
                         "min": -55.0
                     },

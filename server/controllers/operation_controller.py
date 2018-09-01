@@ -30,9 +30,10 @@ from server.models.operations_status import OperationStatus  # noqa: E501
 from server.models.operations import Operations  # noqa: E501
 from server.models.operation import Operation  # noqa: E501
 from server.models.status import Status  # noqa: E501
+from server.models.point import Point
 from server import common
 from arm import me_arm
-from kinematics import Point
+from kinematics import Point as Kinematics_Point
 
 def checkin(id): # noqa: E501
     # currently, header parameters will not be passed as arguments to controller
@@ -50,7 +51,7 @@ def checkin(id): # noqa: E501
     :rtype: SessionStatus
     """
     if id not in me_arm.get_names():
-        return 'meArm with name %s is not known' % id, 400 
+        return 'meArm with name %s is not known' % id, 400
 
     if connexion.request.headers['token'] is None:
         return 'Missing header value "token"', 400
@@ -64,7 +65,7 @@ def checkin(id): # noqa: E501
     if token != common.token[id]:
         return common.status[id], 403
 
-    status= common.status[id]
+    status = common.status[id]
     ops = status.movements_since_checkout
     duration = (datetime.datetime.now() - status.checked_out_since).total_seconds()
     common.status[id] = Status(common.HOSTNAME, common.VERSION, False)
@@ -86,7 +87,7 @@ def checkout(id):  # noqa: E501
     :rtype: Token
     """
     if id not in me_arm.get_names():
-        return 'meArm with name %s is not known' % id, 400 
+        return 'meArm with name %s is not known' % id, 400
 
     if common.token[id] is not None:
         return common.status[id], 403
@@ -99,7 +100,7 @@ def checkout(id):  # noqa: E501
         datetime.datetime.now(),
         0,
         None)
-    
+
     arm = me_arm.get(id)
     arm.turn_on()
 
@@ -126,7 +127,7 @@ def operate(id, operations):  # noqa: E501
     t_start = datetime.datetime.now()
 
     if id not in me_arm.get_names():
-        return 'meArm with name %s is not known' % id, 400 
+        return 'meArm with name %s is not known' % id, 400
 
     if connexion.request.headers['token'] is None:
         return 'Missing header value "token"', 400
@@ -150,11 +151,17 @@ def operate(id, operations):  # noqa: E501
             for dummy, val in enumerate(operations):
                 if val.type == 'moveTo':
                     if val.target.x is None or val.target.y is None or val.target.z is None:
-                        target = Point.fromPolar(val.target.r, val.target.lat, val.target.lng)
+                        target = Kinematics_Point.fromPolar(val.target.r, val.target.lat, val.target.lng)
                     else:
-                        target = Point.fromCartesian(val.target.x, val.target.y, val.target.z)
+                        target = Kinematics_Point.fromCartesian(val.target.x, val.target.y, val.target.z)
                     num_ops += arm.go_to_point(target, 2.5, False)
-                    common.status[id].position = arm.position
+                    common.status[id].position = Point(
+                        arm.position.x,
+                        arm.position.y,
+                        arm.position.z,
+                        arm.position.r,
+                        arm.position.lat,
+                        arm.position.lng)
                 elif val.type == 'grab':
                     arm.close()
                     num_ops += 1

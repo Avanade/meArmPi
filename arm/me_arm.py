@@ -148,6 +148,7 @@ class me_arm(object):
                                 me_arm.elbow_neutral_angle, me_arm.elbow_min_angle, me_arm.elbow_max_angle, me_arm.elbow_trim)
         self._gripper_servo = me_armServo(gripper_channel, MiuzeiSG90Attributes(), 
                                 0, me_arm.gripper_open_angle, me_arm.gripper_closed_angle, me_arm.gripper_trim)     
+        self._position = Point.fromCartesian(0, 0, 0)
 
     @classmethod
     def boot_from_json_file(cls, json_file:str):
@@ -373,7 +374,7 @@ class me_arm(object):
         """
         is_reachable, hip, shoulder, elbow = self.is_reachable(target)
         if not is_reachable:
-            msg = "Point x: %f, y: %f, x: %f is not reachable" % (target.x, target.y, target.z)
+            msg = "Point (%f, %f, %f) is not reachable" % (target.x, target.y, target.z)
             self._logger.error(msg)
             if raiseOutOfBoundsException: raise Exception(msg)
             return False       
@@ -385,7 +386,7 @@ class me_arm(object):
         self._hip_angle = hip
         self._shoulder_angle = shoulder
         self._elbow_angle = elbow
-        self._logger.info("Goto point x: %f, y: %f, z: %f; hip: %f, shoulder: %f, elbow: %f",
+        self._logger.info("Goto point (%f,%f, %f) -> (%f, %f, %f)",
             target.x, target.y, target.z,
             hip - self._hip_servo.trim , shoulder - self._shoulder_servo.trim, elbow - self._elbow_servo.trim)
         return True
@@ -452,13 +453,7 @@ class me_arm(object):
         shoulder = self._shoulder_servo.neutral + self._shoulder_servo.trim
         hip = self._hip_servo.neutral + self._hip_servo.trim
         x, y, z = self._kinematics.toCartesian(hip, shoulder, elbow)
-        self.go_to_point(Point.fromCartesian(x, y, z), 2.5, False)
-        
-        #self._position = Point.fromCartesian(x, y, z) 
-        #self._controller.set_servo_angle(self._hip_servo.channel, self._hip_servo.neutral)
-        #self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_servo.neutral)
-        #self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_servo.neutral)
-        #self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
+        self.go_to_point(Point.fromCartesian(x, y, z), 2.5, False)        
         self._logger.info("(%f, %f, %f) -> (%f, %f, %f", 
                           self._hip_servo.neutral, self._shoulder_servo.neutral, self._elbow_servo.neutral,
                           self._position.x, self._position.y, self._position.z)
@@ -484,7 +479,7 @@ class me_arm(object):
             self._controller.set_off(self._shoulder_servo.channel, False)
             self._controller.set_off(self._elbow_servo.channel, False)
             self._controller.set_off(self._gripper_servo.channel, False)
-            self._turneOff = False
+            self._turnedOff = False
 
     def test(self, repeat: bool = False) -> int:
         """Simple loop to test the arm

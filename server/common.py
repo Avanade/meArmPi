@@ -25,7 +25,8 @@ import atexit
 import logging
 import json
 
-from server.models.status import Status as Status
+from server.models.status import Status
+from server.models.point import Point
 from arm import me_arm
 
 global VERSION
@@ -48,7 +49,13 @@ def init():
         token[name] = None
         status[name] = Status(HOSTNAME, VERSION, False)
         arm = me_arm.get(name)
-        status[name].position = arm.position
+        status[name].position = Point(
+            arm.position.x,
+            arm.position.y,
+            arm.position.z,
+            arm.position.r,
+            arm.position.lat,
+            arm.position.lng)
 
 def shutdown():
     """shutdown

@@ -325,7 +325,7 @@ class PCA9685(object):
         :type tf: bool
         
         """
-        oldmode = self._device.readRaw8(LED0_OFF_H+4*channel)
+        oldmode = self._device.readU8(LED0_OFF_H+4*channel)
         if tf == 1:
             mode = oldmode | 0x10
         else:

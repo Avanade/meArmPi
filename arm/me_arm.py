@@ -252,8 +252,9 @@ class me_arm(object):
         for key in cls._instances.keys():
             arm = cls._instances[key]
             arm.reset()
-        if clear: cls._instances.clear()
-        software_reset()
+        if clear: 
+            cls._instances.clear()
+            software_reset()
 
     @classmethod
     def get(cls, id: str):
@@ -454,6 +455,19 @@ class me_arm(object):
         self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
         self._logger.info("hip: %f, shoulder: %f, elbow: %f", self._hip_servo.neutral, self._shoulder_servo.neutral, self._elbow_servo.neutral)
         time.sleep(0.3)
+
+    def turn_off(self):
+        #put the servos into full off
+        self._controller.set_off(self._hip_servo.channel, True)
+        self._controller.set_off(self._shoulder_servo.channel, True)
+        self._controller.set_off(self._elbow_servo.channel, True)
+        self._controller.set_off(self._gripper_servo.channel, True)
+
+    def turn_on(self):
+        self._controller.set_off(self._hip_servo.channel, False)
+        self._controller.set_off(self._shoulder_servo.channel, False)
+        self._controller.set_off(self._elbow_servo.channel, False)
+        self._controller.set_off(self._gripper_servo.channel, False)
 
     def test(self, repeat: bool = False) -> int:
         """Simple loop to test the arm

@@ -71,10 +71,11 @@ def checkin(id): # noqa: E501
     common.token[id] = None
     arm = me_arm.get(id)
     arm.reset()
+    arm.turn_off()
 
     #if no other arms on the controller are checked out, reset the controller....
-    shouldShutdown = all(v is None for v in common.token.values())
-    if shouldShutdown: me_arm.shutdown(False)
+    #shouldShutdown = all(v is None for v in common.token.values())
+    #if shouldShutdown: me_arm.shutdown(False)
 
     return SessionStatus(False, duration, ops)
 
@@ -102,6 +103,9 @@ def checkout(id):  # noqa: E501
         datetime.datetime.now(),
         0,
         None)
+    
+    arm = me_arm.get(id)
+    arm.turn_on()
 
     response = Token(common.token[id])
     return response
@@ -167,7 +171,7 @@ def operate(id, operations):  # noqa: E501
     except ValueError:
         return 'Incorrect operation type. Only moveTo, grab and release are supported', 400
 
-    common.status[id].numberOfOperations += num_ops
+    common.status[id].movements_since_checkout += num_ops
     return OperationStatus(
         num_ops,
         (datetime.datetime.now() - t_start).total_seconds(),

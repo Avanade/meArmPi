@@ -172,7 +172,7 @@ class PCA9685(object):
             data['servo_frequency']
         )
         if data['logging_level'] is not None:
-            logger.setLevel(data['loggin_level'])
+            logger.setLevel(data['logging_level'])
         return instance
 
     @property

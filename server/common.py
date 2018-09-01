@@ -47,12 +47,14 @@ def init():
     for name in me_arm.get_names():
         token[name] = None
         status[name] = Status(HOSTNAME, VERSION, False)
+        arm = me_arm.get(name)
+        status[name].position = arm.position
 
 def shutdown():
     """shutdown
         Deletes the arm and then resets the controller
     """
-    me_arm.shutdown()
+    me_arm.shutdown(True)
 
 # restier shutdown steps
 atexit.register(shutdown)

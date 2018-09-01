@@ -68,8 +68,12 @@ class Point(object):
         p.y = y
         p.z = z
         p.r = math.sqrt(x*x + y*y + z*z)
-        p.lat = math.acos(z / p.r)
-        p.lng = math.acos(x / math.sqrt(x*x*1.0 +y*y*1.0))
+        if p.r == 0:
+            p.lat = math.pi/2
+            p.lng = math.pi/2
+        else:    
+            p.lat = math.acos(z / p.r)
+            p.lng = math.acos(x / math.sqrt(x*x*1.0 +y*y*1.0))
         if y < 0: p.lng = -p.lng
         if not useRadians:
             p.lat = math.degrees(p.lat)

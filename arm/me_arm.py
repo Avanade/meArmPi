@@ -28,6 +28,7 @@ from jsonschema import validate, RefResolver, Draft4Validator, ValidationError, 
 from controller import PCA9685, Servo, ServoAttributes, MiuzeiSG90Attributes, ES08MAIIAttributes, CustomServoAttributes, software_reset
 from kinematics import Kinematics, Point
 from .arm_servo import me_armServo
+from .arm_kinematics import me_armKinematics
 from .schemas import me_arm_schema, schema_store
 
 class me_arm(object):
@@ -113,6 +114,7 @@ class me_arm(object):
         
         self._controller = controller
         self._kinematics = Kinematics()
+        self._turnedOff = False
 
         self.__setup_defaults(hip_channel, elbow_channel, shoulder_channel, gripper_channel)
 
@@ -197,6 +199,8 @@ class me_arm(object):
                 obj._shoulder_servo = me_armServo.from_dict(s['shoulder']) 
                 obj._elbow_servo = me_armServo.from_dict(s['elbow']) 
                 obj._gripper_servo = me_armServo.from_dict(s['gripper'])
+                obj._arm_kinematics = me_armKinematics.from_dict(a['kinematics'])
+                obj._kinematics = Kinematics(False, obj._arm_kinematics.humerus, obj._arm_kinematics.radius, obj._arm_kinematics.clavicle + obj._arm_kinematics.phalanx)
                 obj._inc = a['angle-increment']
                 obj.initialize()
                 cls._instances[id] = obj
@@ -320,7 +324,6 @@ class me_arm(object):
 
     def delete(self):
         """delete
-
         Deletes the meArm
         """
         self.reset()
@@ -427,15 +430,9 @@ class me_arm(object):
         self._controller.add_servo(self._shoulder_servo.channel, self._shoulder_servo.attributes)
         self._controller.add_servo(self._elbow_servo.channel, self._elbow_servo.attributes)
         self._controller.add_servo(self._gripper_servo.channel, self._gripper_servo.attributes)
-        
-        # set neutral angles
-        self._elbow_angle = self._elbow_servo.neutral + self._elbow_servo.trim
-        self._shoulder_angle = self._shoulder_servo.neutral + self._shoulder_servo.trim
-        self._hip_angle = self._hip_servo.neutral + self._hip_servo.trim
-        x, y, z = self._kinematics.toCartesian(self._hip_angle, self._shoulder_angle, self._elbow_angle)
-        self._position = Point.fromCartesian(x, y, z)  
         self.reset()
-        self._logger.info("meArm with id %s initialized", self._id)
+        self.turn_off()
+        self._logger.info("meArm with id %s initialized,", self._id)
 
     def open(self):
         """open
@@ -449,25 +446,45 @@ class me_arm(object):
         """reset
         Resets the arm at neutral position"""
         self._logger.info('Resetting arm %s...', self._id)
-        self._controller.set_servo_angle(self._hip_servo.channel, self._hip_servo.neutral)
-        self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_servo.neutral)
-        self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_servo.neutral)
-        self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
-        self._logger.info("hip: %f, shoulder: %f, elbow: %f", self._hip_servo.neutral, self._shoulder_servo.neutral, self._elbow_servo.neutral)
+        
+        # set neutral angles
+        elbow = self._elbow_servo.neutral + self._elbow_servo.trim
+        shoulder = self._shoulder_servo.neutral + self._shoulder_servo.trim
+        hip = self._hip_servo.neutral + self._hip_servo.trim
+        x, y, z = self._kinematics.toCartesian(hip, shoulder, elbow)
+        self.go_to_point(Point.fromCartesian(x, y, z), 2.5, False)
+        
+        #self._position = Point.fromCartesian(x, y, z) 
+        #self._controller.set_servo_angle(self._hip_servo.channel, self._hip_servo.neutral)
+        #self._controller.set_servo_angle(self._shoulder_servo.channel, self._shoulder_servo.neutral)
+        #self._controller.set_servo_angle(self._elbow_servo.channel, self._elbow_servo.neutral)
+        #self._controller.set_servo_angle(self._gripper_servo.channel, self._gripper_servo.min)
+        self._logger.info("(%f, %f, %f) -> (%f, %f, %f", 
+                          self._hip_servo.neutral, self._shoulder_servo.neutral, self._elbow_servo.neutral,
+                          self._position.x, self._position.y, self._position.z)
         time.sleep(0.3)
 
     def turn_off(self):
-        #put the servos into full off
-        self._controller.set_off(self._hip_servo.channel, True)
-        self._controller.set_off(self._shoulder_servo.channel, True)
-        self._controller.set_off(self._elbow_servo.channel, True)
-        self._controller.set_off(self._gripper_servo.channel, True)
+        """turn_off
+        Turns all servos of the arm to full off
+        """
+        if not self._turnedOff:
+            self._controller.set_off(self._hip_servo.channel, True)
+            self._controller.set_off(self._shoulder_servo.channel, True)
+            self._controller.set_off(self._elbow_servo.channel, True)
+            self._controller.set_off(self._gripper_servo.channel, True)
+            self._turnedOff = True
 
     def turn_on(self):
-        self._controller.set_off(self._hip_servo.channel, False)
-        self._controller.set_off(self._shoulder_servo.channel, False)
-        self._controller.set_off(self._elbow_servo.channel, False)
-        self._controller.set_off(self._gripper_servo.channel, False)
+        """turn_on
+        Turns all servos of the arm to pwm
+        """
+        if self._turnedOff:
+            self._controller.set_off(self._hip_servo.channel, False)
+            self._controller.set_off(self._shoulder_servo.channel, False)
+            self._controller.set_off(self._elbow_servo.channel, False)
+            self._controller.set_off(self._gripper_servo.channel, False)
+            self._turneOff = False
 
     def test(self, repeat: bool = False) -> int:
         """Simple loop to test the arm

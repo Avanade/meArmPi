@@ -73,10 +73,6 @@ def checkin(id): # noqa: E501
     arm.reset()
     arm.turn_off()
 
-    #if no other arms on the controller are checked out, reset the controller....
-    #shouldShutdown = all(v is None for v in common.token.values())
-    #if shouldShutdown: me_arm.shutdown(False)
-
     return SessionStatus(False, duration, ops)
 
 def checkout(id):  # noqa: E501
@@ -158,6 +154,7 @@ def operate(id, operations):  # noqa: E501
                     else:
                         target = Point.fromCartesian(val.target.x, val.target.y, val.target.z)
                     num_ops += arm.go_to_point(target, 2.5, False)
+                    common.status[id].position = arm.position
                 elif val.type == 'grab':
                     arm.close()
                     num_ops += 1

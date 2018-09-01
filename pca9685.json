@@ -2,5 +2,6 @@
     "address": 64,
     "frequency": 26500000,
     "resolution": 4096,
-    "servo_frequency": 50
+    "servo_frequency": 50,
+    "logging_level": "INFO"
 }

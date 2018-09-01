@@ -61,7 +61,7 @@ ALLCALL = 0x01
 INVRT = 0x10
 OUTDRV = 0x04
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('controller')
 
 def ensureI2C(i2c=None):
     """Ensures I2C device interface"""
@@ -171,6 +171,8 @@ class PCA9685(object):
             data['resolution'],
             data['servo_frequency']
         )
+        if data['logging_level'] is not None:
+            logger.setLevel(data['loggin_level'])
         return instance
 
     @property
@@ -328,9 +330,12 @@ class PCA9685(object):
         oldmode = self._device.readU8(LED0_OFF_H+4*channel)
         if tf == 1:
             mode = oldmode | 0x10
+            logger.info('Setting servo on channel %d to OFF', channel)
         else:
             mode = oldmode & 0xEF
+            logger.info('Setting servo on channel %d to PWM', channel)
         self._device.write8(LED0_OFF_H+4*channel, mode)
+
 
     def set_pwm(self, channel: int, on_ticks: int, off_ticks: int):
         """set_pwm

@@ -3,9 +3,11 @@
         "address": 64,
         "frequency": 26500000,
         "resolution": 4096,
-        "servo_frequency": 50
+        "servo_frequency": 50,
+        "logging_level": "WARNING"
     },
     "arms": [{
+            "logging_level": "INFO",
             "angle-increment": 0.5,
             "servos": {
                 "hip": {
@@ -72,6 +74,7 @@
             }
         },
         {
+            "logging_level": "WARNING",
             "angle-increment": 0.5,
             "servos": {
                 "hip": {

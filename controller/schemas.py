@@ -33,7 +33,8 @@ controller_schema = {
                 "address" : {"type" : "number"},
                 "frequency" : {"type" : "number"},
                 "resolution" : {"type": "number"},
-                "servo_frequency": {"type": "number"}
+                "servo_frequency": {"type": "number"},
+                "logging_level": {"type": "string", "enum": ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]}
             },
             "required": [ "address", "frequency", "resolution", "servo_frequency" ]
         },

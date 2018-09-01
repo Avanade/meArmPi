@@ -54,6 +54,7 @@ me_arm_schema = {
         "arm": {
             "type": "object",
             "properties": {
+                "logging_level": {"type": "string", "enum": ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]},
                 "angle-increment": {"type": "number"},
                 "servos": {
                     "type": "object",

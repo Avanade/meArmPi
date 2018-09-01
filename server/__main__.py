@@ -27,6 +27,7 @@ from server import encoder
 from server import common
 
 logging.basicConfig(level=logging.INFO)
+logging.captureWarnings(True)
 
 def main():
     app = connexion.App(__name__, specification_dir='./swagger/')

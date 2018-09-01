@@ -46,7 +46,7 @@ class Servo(object):
         :type attributes: ServoAttributes
 
         """
-        self._logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger('controller.servo')
         self._controller = controller
         self._channel = channel
         self._attributes = attributes

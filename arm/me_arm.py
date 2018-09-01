@@ -64,7 +64,8 @@ class me_arm(object):
             elbow_channel: int = 12,
             shoulder_channel: int = 13,
             gripper_channel: int = 14,
-            initialize: bool = True):
+            initialize: bool = True,
+            logging_level: str = 'INFO'):
         """__init__
         Default initialization of arm. Avoid using this and instead create a meArm using the meArm.createWithParameters
         method, which ensures that a meArm is not registered twice.
@@ -85,10 +86,15 @@ class me_arm(object):
         :type gripper_channel: int
 
         :param initialize: True to immidiately run the servo initialization, false to adjuist values after construction.
-        :type initialize: bool      
+        :type initialize: bool
 
+        :param logging_level: The logging level to use for this arm. 
+        :type logging_level: string
         """
-        self._logger = logging.getLogger(__name__)
+        self._servo_tag: str = str(hip_channel).zfill(2) + str(elbow_channel).zfill(2) + str(shoulder_channel).zfill(2) + str(gripper_channel).zfill(2)
+        self._id: str = str(controller.address).zfill(6) + self._servo_tag
+        self._logger = logging.getLogger("%s.%s" % (__name__, self._id))
+        self._logger.setLevel(logging_level)
 
         if hip_channel < 0 or hip_channel > 15 or \
            elbow_channel < 0 or elbow_channel > 15 or \
@@ -102,9 +108,6 @@ class me_arm(object):
             msg = "You must supply a valid controller object to create a meArm"
             self._logger.error(msg)
             raise Exception(msg)
-
-        self._servo_tag: str = str(hip_channel).zfill(2) + str(elbow_channel).zfill(2) + str(shoulder_channel).zfill(2) + str(gripper_channel).zfill(2)
-        self._id: str = str(controller.address).zfill(6) + self._servo_tag
 
         if self._id in me_arm._instances:
             msg = "meArm Instance already exists. Cannot create a new instance. Release the existing \
@@ -191,11 +194,14 @@ class me_arm(object):
         for c in data:
             controller = PCA9685.from_dict(c['controller'])
             for a in c['arms']:
+                level = "INFO"
                 s = a['servos']
                 tag = str(s['hip']['channel']).zfill(2) + str(s['elbow']['channel']).zfill(2) + str(s['shoulder']['channel']).zfill(2) + str(s['gripper']['channel']).zfill(2)
                 id = str(controller.address).zfill(6) + tag
+
                 if id in me_arm._instances: continue
-                obj = cls(controller, s['hip']['channel'], s['elbow']['channel'], s['shoulder']['channel'], s['gripper']['channel'], False)
+                if a['logging_level'] is not None: level = a['logging_level']
+                obj = cls(controller, s['hip']['channel'], s['elbow']['channel'], s['shoulder']['channel'], s['gripper']['channel'], False, level)
                 obj._hip_servo = me_armServo.from_dict(s['hip'])
                 obj._shoulder_servo = me_armServo.from_dict(s['shoulder']) 
                 obj._elbow_servo = me_armServo.from_dict(s['elbow']) 

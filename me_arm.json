@@ -82,10 +82,10 @@
                     "type": "ES08MAII",
                     "range": {
                         "neutral": -0.0,
-                        "max": 90.0,
-                        "min": -90.0
+                        "max": 93.0,
+                        "min": -87.0
                     },
-                    "trim": 3.0
+                    "trim": -3.0
                 },
                 "elbow": {
                     "channel": 1,

@@ -85,7 +85,7 @@
                         "max": 90.0,
                         "min": -90.0
                     },
-                    "trim": 0.0
+                    "trim": 3.0
                 },
                 "elbow": {
                     "channel": 1,
@@ -93,19 +93,19 @@
                     "range": {
                         "neutral": -0.0,
                         "max": 90.0,
-                        "min": -25.0
+                        "min": -40.0
                     },
-                    "trim": -45.0
+                    "trim": 45.0
                 },
                 "shoulder": {
                     "channel": 2,
                     "type": "ES08MAII",
                     "range": {
-                        "neutral": 40.0,
-                        "max": 65.0,
-                        "min": -15.0
+                        "neutral": 70.0,
+                        "max": 90.0,
+                        "min": -20.0
                     },
-                    "trim": 5.0
+                    "trim": -25.0
                 },
                 "gripper": {
                     "channel": 3,

@@ -34,6 +34,6 @@ class ES08MAIIAttributes(ServoAttributes):
     max_pulse = 2.4
     min_pulse = 0.6
     neutral_pulse = 1.5
-    min_angle = -90.0
-    max_angle = 90.0
+    min_angle = -90.01
+    max_angle = 90.01
     neutral_angle = -0.0

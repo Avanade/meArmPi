@@ -78,24 +78,14 @@
             "angle-increment": 0.5,
             "servos": {
                 "hip": {
-                    "channel": 0,
-                    "type": "ES08MAII",
-                    "range": {
-                        "neutral": -0.0,
-                        "max": 93.0,
-                        "min": -87.0
-                    },
-                    "trim": -3.0
-                },
-                "elbow": {
-                    "channel": 1,
+                    "channel": 3,
                     "type": "ES08MAII",
                     "range": {
                         "neutral": -0.0,
                         "max": 90.0,
-                        "min": -40.0
+                        "min": -87.0
                     },
-                    "trim": 45.0
+                    "trim": -3.0
                 },
                 "shoulder": {
                     "channel": 2,
@@ -107,8 +97,18 @@
                     },
                     "trim": -25.0
                 },
+                "elbow": {
+                    "channel": 1,
+                    "type": "ES08MAII",
+                    "range": {
+                        "neutral": -0.0,
+                        "max": 90.0,
+                        "min": -40.0
+                    },
+                    "trim": 45.0
+                },
                 "gripper": {
-                    "channel": 3,
+                    "channel": 0,
                     "type": "ES08MAII",
                     "range": {
                         "neutral": -0.0,

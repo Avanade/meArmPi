@@ -25,7 +25,7 @@ import time
 import logging
 import atexit
 import json
-from arm import me_arm, arm_attributes, me_armServo
+from arm import me_arm, me_armServo
 from controller import PCA9685, software_reset
 
 logging.basicConfig(level=logging.INFO)
@@ -46,28 +46,25 @@ print('Press Ctrl-C to quit...')
 #     servo_frequency)
 #controller = PCA9685.from_json_file('pca9685.json')
 
+arms = me_arm.boot_from_json_file('me_arm.json')
+all_arms = iter(arms.values())
+for me_arm in all_arms:
+    me_arm.close()
+    time.sleep(2)
+    me_arm.open()
+    time.sleep(2)
+    me_arm.test()
+
+
 def shutdown():
     """shutdown
         Deletes the arm and then resets the controller
     """
     logger.info('Resetting servo and controller...')
-    logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
-    me_arm.shutdown()
+    for me_arm in all_arms:
+        logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
+        me_arm.shutdown()
     #software_reset()
 
 # restier shutdown steps
 atexit.register(shutdown)
-
-#my_arm = me_arm.createWithServoParameters(controller, 15, 12, 13, 14)
-#my_arm.close()
-#time.sleep(2)
-#my_arm.open()
-#time.sleep(2)
-#my_arm.test()
-arms = me_arm.boot_from_json_file('me_arm.json')
-my_arm = next(iter(arms.values()))
-my_arm.close()
-time.sleep(2)
-my_arm.open()
-time.sleep(2)
-my_arm.test()

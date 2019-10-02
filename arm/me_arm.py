@@ -260,9 +260,10 @@ class me_arm(object):
         :type clear:    bool
         """
         arm: cls = None
-        for key in cls._instances.keys():
+        for key  in cls._instances:
             arm = cls._instances[key]
             arm.reset()
+            arm.turn_off()
         if clear: 
             cls._instances.clear()
             software_reset()
@@ -532,7 +533,7 @@ class me_arm(object):
                 self._elbow_angle -= me_arm._inc
                 ops += 1
 
-            while self._hip_angle - self._hip_servo.trim < self._hip_servo.max:
+            while (self._hip_angle - self._hip_servo.trim) < self._hip_servo.max:
                 self._controller.set_servo_angle(self._hip_servo.channel, self._hip_angle - self._hip_servo.trim)
                 self._hip_angle += me_arm._inc
                 ops += 1

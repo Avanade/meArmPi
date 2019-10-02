@@ -85,7 +85,7 @@
                         "max": 90.0,
                         "min": -87.0
                     },
-                    "trim": -3.0
+                    "trim": 3.0
                 },
                 "shoulder": {
                     "channel": 2,

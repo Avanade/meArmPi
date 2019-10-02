@@ -48,22 +48,20 @@ print('Press Ctrl-C to quit...')
 
 arms = me_arm.boot_from_json_file('me_arm.json')
 all_arms = iter(arms.values())
-for me_arm in all_arms:
-    me_arm.close()
+for my_arm in all_arms:
+    my_arm.close()
     time.sleep(2)
-    me_arm.open()
+    my_arm.open()
     time.sleep(2)
-    me_arm.test()
-
+    my_arm.test()
 
 def shutdown():
     """shutdown
         Deletes the arm and then resets the controller
     """
     logger.info('Resetting servo and controller...')
-    for me_arm in all_arms:
-        logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
-        me_arm.shutdown()
+    logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
+    me_arm.shutdown()
     #software_reset()
 
 # restier shutdown steps

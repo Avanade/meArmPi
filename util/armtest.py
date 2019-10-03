@@ -60,9 +60,12 @@ def shutdown():
         Deletes the arm and then resets the controller
     """
     logger.info('Resetting servo and controller...')
-    logger.info('Deleting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
-    me_arm.shutdown()
-    #software_reset()
+    logger.info('Resetting registered meArms [%s]' % ', '.join(map(str, me_arm.get_names())))
+    for name in me_arm.get_names():
+        arm = me_arm.get(name)
+        arm.reset()
+        arm.turn_off()
+    software_reset()
 
 # restier shutdown steps
 atexit.register(shutdown)

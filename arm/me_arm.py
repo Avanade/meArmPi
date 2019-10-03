@@ -260,8 +260,8 @@ class me_arm(object):
         :type clear:    bool
         """
         arm: cls = None
-        for key  in cls._instances:
-            arm = cls._instances[key]
+        for key  in me_arm._instances:
+            arm = me_arm._instances[key]
             arm.reset()
             arm.turn_off()
         if clear: 

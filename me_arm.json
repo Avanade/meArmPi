@@ -32,18 +32,8 @@
                     },
                     "trim": 0.0
                 },
-                "elbow": {
-                    "channel": 12,
-                    "type": "SG-90",
-                    "range": {
-                        "neutral": -10.0,
-                        "max": 84.5,
-                        "min": -55.0
-                    },
-                    "trim": 55.0
-                },
                 "shoulder": {
-                    "channel": 13,
+                    "channel": 14,
                     "type": "SG-90",
                     "range": {
                         "neutral": 65.0,
@@ -52,8 +42,18 @@
                     },
                     "trim": -20.0
                 },
+                "elbow": {
+                    "channel": 13,
+                    "type": "SG-90",
+                    "range": {
+                        "neutral": -10.0,
+                        "max": 84.5,
+                        "min": -55.0
+                    },
+                    "trim": 55.0
+                },
                 "gripper": {
-                    "channel": 14,
+                    "channel": 12,
                     "type": "SG-90",
                     "range": {
                         "neutral": -0.0,
